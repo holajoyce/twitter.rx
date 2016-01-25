@@ -27,3 +27,4 @@ spark
 spark master
 hadoop 
 hadoop namenode
+redis

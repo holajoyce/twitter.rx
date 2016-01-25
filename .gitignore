@@ -1,18 +1,4 @@
-install_notes
-metastore_db
-*.log
-checkpoint
-.cache-main
-dataset
-.metadata
-.settings
-.project
-.pyproject
-
-manifest.yml
-.gradle
-selenium.log
-debug/scc_SMA_forums_debug.egg-info
+*.pyc
 restfb
 scheduling_wrapper
 nohup.out
@@ -45,3 +31,6 @@ target
 *_export.csv
 build
 dist
+scc_SMA_forums.egg-info
+selenium.log
+

@@ -1,0 +1,103 @@
+package com.insightde.utils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.ReadContext;
+
+//import redis.clients.jedis.Jedis;
+
+public class IodineJsonParser {
+	
+	private Set<String> all_drug_companies = Sets.newHashSet();
+	private Map<String,Map<String,Set<String>>> condition_drug_companies = Maps.newHashMap();
+	private Map<String, Set<String>> symptoms_conditions = Maps.newHashMap();
+	private Map<String, Set<String>> conditions_symptoms = Maps.newHashMap();
+	
+	public IodineJsonParser(){
+//		Jedis jedis = new Jedis("localhost");
+	}
+	
+	public void readConditionsDir(){
+		String fileName =  "src/main/resources/iodine/conditions";
+		File dir = new File(fileName);
+		File[] fList = dir.listFiles();
+		
+		for (File file : fList) {
+			if(!file.getName().equals(".DS_Store")){
+				String content = "";
+				try {
+					content = new String(Files.readAllBytes(Paths.get(fileName+"/"+file.getName())));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				String condition = file.getName().replace(".json", "").replace("-", " ");
+				readConditionFromJson(content);
+			}
+		}
+		System.out.println(symptoms_conditions);
+		
+	}
+	
+	// symptoms -> condition
+	//  conditions -> drugs -> drug companies
+	private void readConditionFromJson(String json){
+		
+		ReadContext ctx = JsonPath.parse(json);
+		
+		Map<String,Set<String>> drug_names_companies = Maps.newHashMap();
+		try{
+			List<String> drugs_names = ctx.read("$.drugs[*].name");		
+			for(Integer i=0;i<drugs_names.size();i++){
+				Set<String> drug_companies = new HashSet<String>(ctx.read("$.drugs["+i.toString()+"].images[*].labeler"));
+				if(drug_companies.size()>0){
+					drug_names_companies.put(drugs_names.get(i), drug_companies);
+					all_drug_companies.addAll(drug_companies);
+				}
+			}
+			String condition = ctx.read("$.condition.name");
+			condition_drug_companies.put(condition,drug_names_companies);
+			Set<String> symptoms = new HashSet<String>(ctx.read("$.condition.symptoms"));
+			conditions_symptoms.put(condition, symptoms);
+			insertIntoConditionsSymptoms(symptoms, condition);
+		}catch(Exception e){
+		}
+	}
+
+	private void insertIntoConditionsSymptoms(Set<String>symptoms, String condition){
+		for (String symptom :symptoms){
+			if (!symptoms_conditions.containsKey(symptom)){
+				Set<String> conditionSet= new HashSet<String>(Arrays.asList(condition));
+				symptoms_conditions.put(symptom, conditionSet);
+			}else{
+				Set<String>conditionSet = symptoms_conditions.get(symptom);
+				conditionSet.add(condition);
+			}
+		}
+	}
+	
+
+	public Map<String, Map<String, Set<String>>> getCondition_drug_companies() {
+		return condition_drug_companies;
+	}
+
+	public Map<String, Set<String>> getSymptoms_conditions() {
+		return symptoms_conditions;
+	}
+
+	public Map<String, Set<String>> getConditions_symptoms() {
+		return conditions_symptoms;
+	}
+	
+}
