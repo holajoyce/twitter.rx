@@ -39,7 +39,6 @@ public class Tweet implements GenericPost{
 	public Long id;
 	public String id_str;
 
-
 	private String text;
 	private Date created_at;
 	private int favorite_count;
@@ -50,11 +49,15 @@ public class Tweet implements GenericPost{
 	private TwitterUser user;
 	private Language lang;
 	private Place place;
-	private List<String> pdmf_tags = Lists.newArrayList();
-	private List<String> main_pdmf_tags = Lists.newArrayList();
+	private List<String> tags = Lists.newArrayList();
 
-	// --- getter setters
 	
+	public Tweet(String id, String text){
+		this.id_str = id;
+		this.text = text;
+	}
+	
+	// --- getter setters
 	public String getRelevantText(){
 		return text;
 	}
@@ -197,13 +200,9 @@ public class Tweet implements GenericPost{
 		if (!hashtags.isEmpty()) {
 			data.put("hashtags", hashtags);
 		}
-		if(!this.getPdmf_tags().isEmpty()){
-			data.put("pdmf_tags", this.getPdmf_tags());
+		if(!this.getTags().isEmpty()){
+			data.put("tags", this.getTags());
 		}
-		if(!this.getMain_pdmf_tags().isEmpty()){
-			data.put("main_pdmf_tags", this.getMain_pdmf_tags());
-		}
-
 		if (this.getPlace() != null) {
 			bounding_box.put("type", this.getPlace().getBounding_box().getType());
 			bounding_box.put("coordinates", this.getPlace().getBounding_box().getCoordinates());
@@ -224,23 +223,16 @@ public class Tweet implements GenericPost{
 		this.id_str = id_str;
 	}
 
-	public List<String> getPdmf_tags() {
-		return pdmf_tags;
+	public List<String> getTags() {
+		return tags;
 	}
 
-	public void setPdmf_tags(List<String> pdmf_tags) {
-		this.pdmf_tags = pdmf_tags;
+	public void setTags(List<String> tags) {
+		this.tags = tags;
 	}
 
-	public List<String> getMain_pdmf_tags() {
-		return main_pdmf_tags;
-	}
-
-	public void setMain_pdmf_tags(List<String> main_pdmf_tags) {
-		this.main_pdmf_tags = main_pdmf_tags;
-	}
 	
-	// sometimes coordinates are not correct
+	// sometimes coordinates are not correct coming from Twitter
 	@SuppressWarnings("unchecked")
 	public static boolean validCoordinates(Tweet tweet) {
 		if (tweet == null) {
@@ -286,7 +278,6 @@ public class Tweet implements GenericPost{
 		}
 		return null;
 	}
-	
 }
 
 /*

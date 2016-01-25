@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Lists;
+//import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.jayway.jsonpath.JsonPath;
@@ -25,29 +25,30 @@ public class IodineJsonParser {
 	private Map<String, Set<String>> symptoms_conditions = Maps.newHashMap();
 	private Map<String, Set<String>> conditions_symptoms = Maps.newHashMap();
 	
-	public IodineJsonParser(){
-//		Jedis jedis = new Jedis("localhost");
+	private String filePath = "";
+	
+	public IodineJsonParser(String filePath){
+		this.filePath = filePath;
+		readConditionsDir();
 	}
 	
-	public void readConditionsDir(){
-		String fileName =  "src/main/resources/iodine/conditions";
-		File dir = new File(fileName);
+	private void readConditionsDir(){
+//		String fileName =  filePath;
+		File dir = new File(filePath);
 		File[] fList = dir.listFiles();
 		
 		for (File file : fList) {
 			if(!file.getName().equals(".DS_Store")){
 				String content = "";
 				try {
-					content = new String(Files.readAllBytes(Paths.get(fileName+"/"+file.getName())));
+					content = new String(Files.readAllBytes(Paths.get(filePath+"/"+file.getName())));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				String condition = file.getName().replace(".json", "").replace("-", " ");
 				readConditionFromJson(content);
 			}
 		}
-		System.out.println(symptoms_conditions);
-		
+		System.out.println(condition_drug_companies);
 	}
 	
 	// symptoms -> condition

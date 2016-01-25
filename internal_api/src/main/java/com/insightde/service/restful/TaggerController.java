@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Maps;
 import com.insightde.ApplicationModeType;
 import com.insightde.taggers.services.Tagger;
-import com.insightde.taggers.services.impl.ExperimentalTagger;
+import com.insightde.taggers.services.impl.ExperimentalLuwakTagger;
 import com.insightde.types.TT.response.Tweet;
 import com.insightde.types.service.restful.response.TaggerResponse;
 import com.insightde.types.sources.DataSourceType;
@@ -42,11 +42,7 @@ public class TaggerController {
 	
 	public TaggerController(){
 
-		tagger =new ExperimentalTagger(
-				applicationMode,
-				conf.getString("tagging.dictionary.names"),
-				conf.getString("tagging.pdmf.files.directory."+applicationModeName)
-		);
+		tagger =new ExperimentalLuwakTagger( );
 		tagger.setDatasourceType(DataSourceType.TT);
 	}
 

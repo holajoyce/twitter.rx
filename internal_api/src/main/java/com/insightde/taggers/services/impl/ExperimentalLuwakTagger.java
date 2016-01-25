@@ -36,10 +36,10 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 
-public class ExperimentalTagger  implements Tagger {
+public class ExperimentalLuwakTagger  implements Tagger {
 	
 	private static final Config conf = ConfigFactory.load();
-	private static final Logger logger = getLogger(ExperimentalTagger.class);
+	private static final Logger logger = getLogger(ExperimentalLuwakTagger.class);
 	
     public final Analyzer ANALYZER = new StandardAnalyzer();
     public final String FIELD = "text";
@@ -64,8 +64,10 @@ public class ExperimentalTagger  implements Tagger {
 	private List<MonitorQuery> queries = new ArrayList<>();
 	
 	private DataSourceType datasourceType=null;
+	
+	
 
-	public ExperimentalTagger(
+	public ExperimentalLuwakTagger(
 			ApplicationModeType appMode, String dictionaryName
 			, String taggingFilesDir
 	){
@@ -77,7 +79,7 @@ public class ExperimentalTagger  implements Tagger {
 		registerRules(dictionaryName);
 	}
 
-	public ExperimentalTagger(){
+	public ExperimentalLuwakTagger(){
 		dictionaryName = conf.getString("tagging.dictionary.names");
 		taggingFilesDirectory = conf.getString("tagging."+dictionaryName+".files.directory."+applicationMode.getLongname());
 		initMonitor();
@@ -209,7 +211,7 @@ public class ExperimentalTagger  implements Tagger {
 	            }
 	            if(!pdmf_tags.isEmpty()){
 	            	GenericPost gp = (GenericPost) posts.get(docMatches.getDocId());
-	            	gp.setPdmf_tags(pdmf_tags);
+	            	gp.setTags(pdmf_tags);
 	            }
 	        } 
 		}catch(IOException e){
@@ -218,7 +220,7 @@ public class ExperimentalTagger  implements Tagger {
 		
 		// pdmf root tags
 		for (String key:posts.keySet()){
-			rootDocs.add( InputDocument.builder(key).addField( getFIELD(), ((GenericPost) posts.get(key)).getPdmf_tags().stream().map(i->i.toString()).collect(Collectors.joining(", ")), getANALYZER()).build());
+			rootDocs.add( InputDocument.builder(key).addField( getFIELD(), ((GenericPost) posts.get(key)).getTags().stream().map(i->i.toString()).collect(Collectors.joining(", ")), getANALYZER()).build());
 		}
 		DocumentBatch rootBatch = DocumentBatch.of(rootDocs);
 		try{
@@ -228,9 +230,7 @@ public class ExperimentalTagger  implements Tagger {
 				for (HighlightsMatch match : docMatches) {
 					root_pdmf_tags.add(match.getQueryId());
 				}
-				if(!root_pdmf_tags.isEmpty()){
-					((GenericPost) posts.get(docMatches.getDocId())).setMain_pdmf_tags(root_pdmf_tags);
-				}
+				
 			}
 		}catch(IOException e){
 			logger.error(e.getMessage());
