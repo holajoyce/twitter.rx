@@ -14,6 +14,8 @@ from pyspark.sql.types import *
 #from cqlengine.models import Model
 #from cqlengine.management import sync_table
 
+# ingest from kafka
+
 sc = SparkContext(appName="TwitterApp")
 ssc = StreamingContext(sc, 2)
 sqlContext = SQLContext(sc)
@@ -29,6 +31,9 @@ def process(rdd):
 	#df=sqlContext.createDataFrame(rdd)
 	#df.show()
 	rowRdd = rdd.map(lambda w: Row(message=json.loads(w)["message"], user_screen_name=json.loads(w)["user_screen_name"],  ))
+
+	r = requests.get('https://api.github.com/user', auth=('user', 'pass'))
+
 
 	df_news = sqlContext.createDataFrame(rowRdd)
 	tmp = df_news.take(1)
