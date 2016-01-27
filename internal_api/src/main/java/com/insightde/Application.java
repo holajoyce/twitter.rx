@@ -25,3 +25,6 @@ public class Application {
     	SpringApplication.run(Application.class, args);
     }
 }
+
+// test into {"id":"1234","text":"I have a headache","created_at": "Tue Jan 26 00:02:05 +0000 2016"}
+

@@ -50,6 +50,7 @@ public class Tweet implements GenericPost{
 	private Language lang;
 	private Place place;
 	private List<String> tags = Lists.newArrayList();
+	private long created_utc = 0L;
 
 	
 //	public Tweet(String id, String text){
@@ -61,6 +62,7 @@ public class Tweet implements GenericPost{
 //	public String getRelevantText(){
 //		return text;
 //	}
+
 
 	public Date getCreated_at() {
 		return created_at;
@@ -195,6 +197,7 @@ public class Tweet implements GenericPost{
 		data.put("user_id", this.getUser().getScreen_name());
 		data.put("post_id", this.getId());
 		data.put("@timestamp", logstashDateFormat.format(this.getCreated_at()));
+		data.put("created_utc", this.getCreated_utc());
 		data.put("message", this.getText());
 		data.put("lang", this.getLang().toString());
 //		if (!hashtags.isEmpty()) {
@@ -277,6 +280,16 @@ public class Tweet implements GenericPost{
 			logger.info(e.getMessage());
 		}
 		return null;
+	}
+	
+	public Long getCreated_utc() {
+		if(created_utc==0L)
+			created_utc = this.getCreated_at().getTime()/1000;
+	    return created_utc;
+	}
+
+	public void setCreated_utc(long created_utc) {
+		this.created_utc = created_utc;
 	}
 }
 
