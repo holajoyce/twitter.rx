@@ -30,9 +30,17 @@ def process(rdd):
     # convert each line to a Row
 	#df=sqlContext.createDataFrame(rdd)
 	#df.show()
-	rowRdd = rdd.map(lambda w: Row(message=json.loads(w)["message"], user_screen_name=json.loads(w)["user_screen_name"],  ))
+	rowRdd = rdd.map(lambda w: Row(message=json.loads(w)["message"] 
+		, user_screen_name=json.loads(w)["user_screen_name"]
+		, user_lang=json.loads(w)["user_lang"]
+		, created_at=json.loads(w)["created_at"]
+		))
+	rowRdd.toDF()
 
-	r = requests.get('https://api.github.com/user', auth=('user', 'pass'))
+	# enrich
+
+ 	r = requests.post("http://localhost:8555/tagbatch", data = df.toJSON())
+	
 
 
 	df_news = sqlContext.createDataFrame(rowRdd)

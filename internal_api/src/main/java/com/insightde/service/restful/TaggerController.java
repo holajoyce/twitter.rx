@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.insightde.ApplicationModeType;
 import com.insightde.taggers.services.Tagger;
 import com.insightde.taggers.services.impl.ExperimentalLuwakTagger;
+import com.insightde.taggers.services.impl.IodineLuwakTagger;
 import com.insightde.types.TT.response.Tweet;
 import com.insightde.types.service.restful.response.TaggerResponse;
 import com.insightde.types.sources.DataSourceType;
@@ -38,11 +39,11 @@ public class TaggerController {
 	public static final String applicationModeName = applicationMode.getLongname();
 	
 	private  Tagger tagger ;
-	private IodineJsonParser ijp;
+//	private IodineJsonParser ijp;
 	
 	public TaggerController(){
 
-		tagger =new ExperimentalLuwakTagger( );
+		tagger =new IodineLuwakTagger();
 		tagger.setDatasourceType(DataSourceType.TT);
 	}
 

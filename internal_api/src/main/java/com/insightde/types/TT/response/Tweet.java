@@ -52,10 +52,10 @@ public class Tweet implements GenericPost{
 	private List<String> tags = Lists.newArrayList();
 
 	
-	public Tweet(String id, String text){
-		this.id_str = id;
-		this.text = text;
-	}
+//	public Tweet(String id, String text){
+//		this.id_str = id;
+//		this.text = text;
+//	}
 	
 	// --- getter setters
 	public String getRelevantText(){

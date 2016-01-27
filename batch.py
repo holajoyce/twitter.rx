@@ -11,12 +11,15 @@ a_user = sqlContext.sql("SELECT * from reddit WHERE author ='bostich'")
 
 
 
-twitterDf = sqlContext.jsonFile("s3n://joyce-raw-twitter/TT-logs8/events/ts=20160127-00/events_0.json")
+twitterDf = sqlContext.jsonFile("s3n://joyce-raw-twitter/TT-logs8/events/ts=20160126-17/events_0.json")
 twitterDf.persist(StorageLevel.MEMORY_AND_DISK_SER)
 twitterDf.registerTempTable("twitterDf")
-
+twitterDf.printSchema()
 
 a_user = sqlContext.sql("SELECT * from twitterDf WHERE user_screen_name ='juliejones88801'")
+
+hashtags = sqlContext.sql("SELECT hashtags from twitterDf")
+
 
 # schemaString = "message user_screen_name"
 # fields = [StructField(field_name, StringType(), True) for field_name in schemaString.split()]
