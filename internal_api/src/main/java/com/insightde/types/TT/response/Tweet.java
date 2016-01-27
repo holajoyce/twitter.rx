@@ -58,9 +58,9 @@ public class Tweet implements GenericPost{
 //	}
 	
 	// --- getter setters
-	public String getRelevantText(){
-		return text;
-	}
+//	public String getRelevantText(){
+//		return text;
+//	}
 
 	public Date getCreated_at() {
 		return created_at;
@@ -97,45 +97,45 @@ public class Tweet implements GenericPost{
 		this.id = id;
 	}
 
-	public int getFavorite_count() {
-		return favorite_count;
-	}
-
-	public void setFavorite_count(int favorite_count) {
-		this.favorite_count = favorite_count;
-	}
-
-	public int getRetweet_count() {
-		return retweet_count;
-	}
-
-	public void setRetweet_count(int retweet_count) {
-		this.retweet_count = retweet_count;
-	}
-
-	public boolean isFavorited() {
-		return favorited;
-	}
-
-	public void setFavorited(boolean favorited) {
-		this.favorited = favorited;
-	}
-
-	public boolean isRetweeted() {
-		return retweeted;
-	}
-
-	public void setRetweeted(boolean retweeted) {
-		this.retweeted = retweeted;
-	}
-
-	public TwitterEntity getEntities() {
-		return entities;
-	}
-
-	public void setEntities(TwitterEntity entities) {
-		this.entities = entities;
-	}
+//	public int getFavorite_count() {
+//		return favorite_count;
+//	}
+//
+//	public void setFavorite_count(int favorite_count) {
+//		this.favorite_count = favorite_count;
+//	}
+//
+//	public int getRetweet_count() {
+//		return retweet_count;
+//	}
+//
+//	public void setRetweet_count(int retweet_count) {
+//		this.retweet_count = retweet_count;
+//	}
+//
+//	public boolean isFavorited() {
+//		return favorited;
+//	}
+//
+//	public void setFavorited(boolean favorited) {
+//		this.favorited = favorited;
+//	}
+//
+//	public boolean isRetweeted() {
+//		return retweeted;
+//	}
+//
+//	public void setRetweeted(boolean retweeted) {
+//		this.retweeted = retweeted;
+//	}
+//
+//	public TwitterEntity getEntities() {
+//		return entities;
+//	}
+//
+//	public void setEntities(TwitterEntity entities) {
+//		this.entities = entities;
+//	}
 
 	public TwitterUser getUser() {
 		return user;
@@ -191,15 +191,15 @@ public class Tweet implements GenericPost{
 		Map<String, Object> data = new HashMap<String, Object>();
 		Map<String, Object> place = new HashMap<String, Object>();
 		Map<String, Object> bounding_box = new HashMap<String, Object>();
-		List<String> hashtags = this.getEntities().getHashtagsAsStrings();
+//		List<String> hashtags = this.getEntities().getHashtagsAsStrings();
 		data.put("user_id", this.getUser().getScreen_name());
 		data.put("post_id", this.getId());
 		data.put("@timestamp", logstashDateFormat.format(this.getCreated_at()));
 		data.put("message", this.getText());
 		data.put("lang", this.getLang().toString());
-		if (!hashtags.isEmpty()) {
-			data.put("hashtags", hashtags);
-		}
+//		if (!hashtags.isEmpty()) {
+//			data.put("hashtags", hashtags);
+//		}
 		if(!this.getTags().isEmpty()){
 			data.put("tags", this.getTags());
 		}

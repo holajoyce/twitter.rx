@@ -7,5 +7,6 @@ public interface GenericPost {
 	public List<String> getTags();
 	public void setTags(List<String> tags);
 	
-	public String getRelevantText();
+//	public String getRelevantText();
+	public String getText();
 }
