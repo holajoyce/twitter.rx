@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Maps;
 import com.insightde.ApplicationModeType;
 import com.insightde.taggers.services.Tagger;
-import com.insightde.taggers.services.impl.ExperimentalLuwakTagger;
 import com.insightde.taggers.services.impl.IodineLuwakTagger;
 import com.insightde.types.TT.response.Tweet;
 import com.insightde.types.service.restful.response.TaggerResponse;

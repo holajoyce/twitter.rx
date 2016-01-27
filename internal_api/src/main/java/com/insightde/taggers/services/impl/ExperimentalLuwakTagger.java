@@ -199,7 +199,7 @@ public class ExperimentalLuwakTagger  implements Tagger {
 		
 		// pdmf tag at leaf level
 		for (String key:posts.keySet()){
-			docs.add( InputDocument.builder(key).addField( getFIELD(), ((GenericPost) posts.get(key)).getRelevantText(), getANALYZER()).build());
+			docs.add( InputDocument.builder(key).addField( getFIELD(), ((GenericPost) posts.get(key)).getText(), getANALYZER()).build());
 		}
 		DocumentBatch batch = DocumentBatch.of(docs);
 		try{
