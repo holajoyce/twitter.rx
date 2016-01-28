@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,25 +23,25 @@ import com.jayway.jsonpath.ReadContext;
 
 public class IodineJsonParser {
 	
-	private Set<String> all_drug_companies = Sets.newHashSet();
-	private Map<String,Map<String,Set<String>>> condition_drug_companies = Maps.newHashMap();
-	private Map<String, Set<String>> symptoms_conditions = Maps.newHashMap();
-	private Map<String,Set<String> > symptoms_drug_companies = Maps.newHashMap();
-	
-	private Map<String, Set<String>> conditions_symptoms = Maps.newHashMap();
+	private Set<String> 						all_drug_companies 		= Sets.newHashSet();
+	private Map<String,Map<String,Set<String>>> condition_drug_companies= Maps.newHashMap();
+	private Map<String,Set<String>> 			symptoms_conditions 	= Maps.newHashMap();
+	private Map<String,Set<String>> 			symptoms_drug_companies = Maps.newHashMap();
+	private Map<String,Set<String>> 			conditions_symptoms 	= Maps.newHashMap();
 	
 	private String filePath = "";
 	
 	public IodineJsonParser(String filePath){
 		this.filePath = filePath;
 		readConditionsDir();
+		for(String d: all_drug_companies){
+			System.out.println(d);
+		}
 	}
 	
 	private void readConditionsDir(){
-//		String fileName =  filePath;
 		File dir = new File(filePath);
 		File[] fList = dir.listFiles();
-		
 		for (File file : fList) {
 			if(!file.getName().equals(".DS_Store")){
 				String content = "";
@@ -51,7 +53,15 @@ public class IodineJsonParser {
 				readConditionFromJson(content);
 			}
 		}
-		System.out.println(condition_drug_companies);
+	}
+	
+	public static void replace(List<String> strings)
+	{
+	    ListIterator<String> iterator = strings.listIterator();
+	    while (iterator.hasNext())
+	    {
+	        iterator.set(iterator.next().toLowerCase().replaceAll("\\.|,|\\&amp|;|-|\\(|\\)|'", "").replaceAll(" +", "_").trim());
+	    }
 	}
 	
 	// symptoms -> condition
@@ -72,13 +82,21 @@ public class IodineJsonParser {
 			
 			List<String> drugs_names = ctx.read("$.drugs[*].name");		
 			for(Integer i=0;i<drugs_names.size();i++){
-				Set<String> drug_companies = new HashSet<String>(ctx.read("$.drugs["+i.toString()+"].images[*].labeler"));
+				Set<String>drug_companies  =Sets.newHashSet();
+				List<String> drug_companies_lst = new ArrayList<String>(ctx.read("$.drugs["+i.toString()+"].images[*].labeler"));
+				replace(drug_companies_lst);
+				drug_companies.addAll(drug_companies_lst);
+
+				System.out.println(drug_companies);
+				
 				if(drug_companies.size()>0){
 					drug_names_companies.put(drugs_names.get(i), drug_companies);
 					all_drug_companies.addAll(drug_companies);
 					insertIntoSymptomsDrugComps(symptoms,drug_companies);
 				}
 			}
+			
+			
 			
 		}catch(Exception e){
 		}
@@ -110,7 +128,6 @@ public class IodineJsonParser {
 			
 		}
 	}
-	
 
 	public Map<String, Map<String, Set<String>>> getCondition_drug_companies() {
 		return condition_drug_companies;
@@ -130,6 +147,18 @@ public class IodineJsonParser {
 
 	public void setSymptoms_drug_companies(Map<String, Set<String>> symptoms_drug_companies) {
 		this.symptoms_drug_companies = symptoms_drug_companies;
+	}
+	
+	public Set<String> getAllSymptoms(){
+		return symptoms_drug_companies.keySet();
+	}
+
+	public Set<String> getAll_drug_companies() {
+		return all_drug_companies;
+	}
+
+	public void setAll_drug_companies(Set<String> all_drug_companies) {
+		this.all_drug_companies = all_drug_companies;
 	}
 	
 }

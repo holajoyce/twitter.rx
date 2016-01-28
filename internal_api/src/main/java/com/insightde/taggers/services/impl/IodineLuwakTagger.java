@@ -48,9 +48,9 @@ public class IodineLuwakTagger  implements Tagger {
     public final String FIELD = "text";
 	
 	private Monitor monitor = null;
-	private Monitor monitor2 = null;
+	private Monitor monitor_symptoms_only = null;
 	private List<MonitorQuery> queries = new ArrayList<>();
-	private List<MonitorQuery> queries2 = new ArrayList<>();
+	private List<MonitorQuery> queries_symptoms_only = new ArrayList<>();
 	
 	private DataSourceType datasourceType=null;
 	
@@ -72,7 +72,7 @@ public class IodineLuwakTagger  implements Tagger {
 	private void initMonitor(){
 		try {
 			monitor = new Monitor(new LuceneQueryParser(FIELD, ANALYZER), new TermFilteredPresearcher()) ;
-			monitor2 = new Monitor(new LuceneQueryParser(FIELD, ANALYZER), new TermFilteredPresearcher()) ;
+			monitor_symptoms_only = new Monitor(new LuceneQueryParser(FIELD, ANALYZER), new TermFilteredPresearcher()) ;
 		} catch (IOException e) {
 			logger.error(e.toString());
 		}
@@ -83,15 +83,13 @@ public class IodineLuwakTagger  implements Tagger {
 		
 		// get the iodine.com definitions from downloaded dictionary files
 		IodineJsonParser isp = new IodineJsonParser(dictionaryDir); 
-		
-//		Map<String,Set<String>>conditions_drug_comps = isp.get
+
 		Map<String, Set<String>>conditions_symptoms = isp.getConditions_symptoms();
 		Map<String, Map<String,Set<String>>> conditions_drug_comps = isp.getCondition_drug_companies();
 		
 		for (Entry<String, Set<String>> entry : conditions_symptoms.entrySet() ) {
 			for (String symptom:entry.getValue()){
 				String condition = entry.getKey(); 
-//					queries.add(new MonitorQuery(condition , symptom));
 				Map<String,Set<String>> drug_drugcomp = conditions_drug_comps.get(condition);
 				for(String drug_tree:drug_drugcomp.keySet()){
 					for (String drug_comp : drug_drugcomp.get(drug_tree)){
@@ -104,6 +102,7 @@ public class IodineLuwakTagger  implements Tagger {
 		logger.info("Finished registering queries");
 		try {
 			monitor.update(queries);
+			logger.info("finished updting queries");
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
@@ -117,7 +116,7 @@ public class IodineLuwakTagger  implements Tagger {
 		List<InputDocument> docs = new ArrayList<>();
 		
 		for (String key:posts.keySet()){
-			docs.add( InputDocument.builder(key).addField( this.FIELD, ((GenericPost) posts.get(key)).getText(), this.ANALYZER).build());
+			docs.add( InputDocument.builder(key).addField( this.FIELD, ((GenericPost) posts.get(key)).getBody(), this.ANALYZER).build());
 		}
 		DocumentBatch batch = DocumentBatch.of(docs);
 		try{
@@ -179,6 +178,8 @@ public class IodineLuwakTagger  implements Tagger {
 	public void setDatasourceType(DataSourceType datasourceType) {
 		this.datasourceType = datasourceType;
 	}
+	
+	
 	
 	// match batch of docs
 }

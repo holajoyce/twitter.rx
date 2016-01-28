@@ -20,6 +20,7 @@ import com.insightde.ApplicationModeType;
 import com.insightde.taggers.services.Tagger;
 import com.insightde.taggers.services.impl.IodineLuwakTagger;
 import com.insightde.types.TT.response.Tweet;
+import com.insightde.types.reddit.Reddit;
 import com.insightde.types.service.restful.response.TaggerResponse;
 import com.insightde.types.sources.DataSourceType;
 import com.insightde.utils.IodineJsonParser;
@@ -51,10 +52,10 @@ public class TaggerController {
 			@RequestParam(value="datasource",required=false) String datasource,
 			@RequestBody String jsonString
 	) throws JsonParseException, JsonMappingException, IOException{
-		Tweet tt = Tweet.jsonToPojo(jsonString);
-		Map<String,Tweet> payload = Maps.newConcurrentMap();
-		payload.put(tt.getIdAsStr(), tt);
-		Map<String,Tweet> enriched = tagger.enrichBatchOfPosts(payload);
+		Reddit tt = Reddit.jsonToPojo(jsonString);
+		Map<String,Reddit> payload = Maps.newConcurrentMap();
+		payload.put(tt.getId(), tt);
+		Map<String,Reddit> enriched = tagger.enrichBatchOfPosts(payload);
 		TaggerResponse tr = new TaggerResponse();
 		tr.setTaggerResp(enriched);
 		String ret =  tr.toString();

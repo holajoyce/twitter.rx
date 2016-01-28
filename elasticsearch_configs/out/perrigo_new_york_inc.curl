@@ -1,0 +1,76 @@
+{
+    "template": "perrigo_new_york_inc-*",
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 1,
+        "analysis": {
+            "tokenizer": {
+                "comma": {
+                    "type": "pattern",
+                    "pattern": ","
+                }
+            },
+            "analyzer": {
+                "whitespace_lower": {
+                    "tokenizer": "whitespace",
+                    "filter": [
+                        "lowercase",
+                        "asciifolding",
+                        "stop_words",
+                        "english_stemmer"
+                    ]
+                },
+                "comma_analyzer": {
+                	"type" : "custom",
+                	"tokenizer" : "comma",
+                	"filter": [
+                        "trim"
+                    ]
+                },
+                "keyword_lowercase": {
+                    "tokenizer": "keyword",
+                    "filter": [
+                        "lowercase",
+                        "asciifolding"
+                    ]
+                }
+            },
+            "filter": {
+                "english_stemmer": {
+                    "type": "stemmer",
+                    "name": "english"
+                },
+                "stop_words": {
+                    "type": "stop",
+                    "stopwords": "_english_"
+                }
+            }
+        }
+    },    
+    "mappings": {
+        "perrigo_new_york_inc": {
+            "properties": {
+                "@timestamp": {
+                    "format": "strict_date_optional_time||epoch_millis",
+                    "type": "date"
+                },
+                "tags": {
+                    "type": "string",
+                    "index": "analyzed",
+                    "analyzer": "comma_analyzer"                   
+                },
+                "id": {
+                    "type": "long"
+                },
+                "body": {
+                    "type": "string",
+                    "index": "analyzed",
+                    "analyzer": "whitespace_lower"                 
+                },
+                "author": {
+                    "type": "long"
+                }
+            }
+        }
+    }
+}

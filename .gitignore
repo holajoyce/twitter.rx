@@ -1,3 +1,4 @@
+collectors
 *.pyc
 restfb
 scheduling_wrapper

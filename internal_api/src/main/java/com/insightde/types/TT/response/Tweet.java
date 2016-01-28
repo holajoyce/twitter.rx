@@ -79,6 +79,9 @@ public class Tweet implements GenericPost{
 	public String getText() {
 		return text;
 	}
+	public String getBody(){
+		return text;
+	}
 
 	public void setText(String text) {
 		this.text = text.replaceAll(textFormat, " ");

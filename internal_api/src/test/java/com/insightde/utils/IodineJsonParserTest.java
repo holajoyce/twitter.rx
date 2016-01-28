@@ -20,6 +20,9 @@ public class IodineJsonParserTest {
 		Map<String,Set<String>> symptoms_condititions = isp.getSymptoms_conditions();
 		Set<String> conditions = symptoms_condititions.get("Flu-like symptoms");
 		assertTrue(conditions.contains("HIV"));
+		
+		Set<String>symptoms = isp.getAllSymptoms();
+		
 	}
 	
 }

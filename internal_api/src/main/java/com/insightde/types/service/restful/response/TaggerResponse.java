@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.insightde.types.TT.response.Tweet;
+import com.insightde.types.reddit.Reddit;
 
 public class TaggerResponse {
 	
@@ -24,18 +25,18 @@ public class TaggerResponse {
     public String getStatus() {
 		return status;
 	}
-    private Map<String,Tweet> taggerResp =null;
+    private Map<String,Reddit> taggerResp =null;
     
     
     public void setStatus(String status) {
 		this.status = status;
 	}
 
-    public Map<String, Tweet> getTaggerResp() {
+    public Map<String, Reddit> getTaggerResp() {
 		return taggerResp;
 	}
 
-	public void setTaggerResp(Map<String, Tweet> taggerResp) {
+	public void setTaggerResp(Map<String, Reddit> taggerResp) {
 		this.taggerResp = taggerResp;
 	}
 
