@@ -20,7 +20,7 @@ def create_curl_index_file():
     for drug_company in drug_companies:
         drug_company= drug_company.rstrip("\n")
         curl_templ_str2 = curl_templ_str.replace("ZZZ",drug_company)
-        curl_file = open(mydir+"/out/"+drug_company+".curl",'w')
+        curl_file = open(mydir+"/out/pharma_"+drug_company+".curl",'w')
         curl_file.write(curl_templ_str2)
         curl_file.close()
         
