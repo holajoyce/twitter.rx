@@ -1,19 +1,4 @@
-#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# http://zdatainc.com/2014/08/real-time-streaming-apache-spark-streaming/
 
 """
  Counts words in UTF8 encoded, '\n' delimited text received from the network every second.
@@ -28,6 +13,7 @@
       examples/src/main/python/streaming/kafka_wordcount.py \
       localhost:2181 test`
 """
+
 from __future__ import print_function
 
 import sys
@@ -35,23 +21,39 @@ import sys
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
+from pyspark.sql import SQLContext, Row
+import json
 
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: kafka_wordcount.py <zk> <topic>", file=sys.stderr)
-        exit(-1)
+# https://github.com/apache/spark/blob/master/examples/src/main/python/streaming/sql_network_wordcount.py
+# https://github.com/willzfarmer/TwitterPanic/blob/master/python/analysis.py
+# https://raw.githubusercontent.com/rustyrazorblade/killranalytics/intro_streaming_python2/killranalytics/spark/raw_event_stream_processing.py
+# https://rideondata.wordpress.com/2015/06/29/analyzing-wikipedia-text-with-pyspark/
+# https://github.com/andyikchu/insightproject/blob/master/realtime_processing/twitter_stream.py
 
-    sc = SparkContext(appName="stream_tagger")
-    ssc = StreamingContext(sc, 1)
+sc = SparkContext(appName="stream_tagger")
+ssc = StreamingContext(sc, 1)
 
-    zkQuorum, topic = sys.argv[1:]
-    kvs = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
-    lines = kvs.map(lambda x: x[1])
-    counts = lines.flatMap(lambda line: line.split(" ")) \
-        .map(lambda word: (word, 1)) \
-        .reduceByKey(lambda a, b: a+b)
-    counts.pprint()
+def getSqlContextInstance(sparkContext):
+    if ('sqlContextSingletonInstance' not in globals()):
+        globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
+    return globals()['sqlContextSingletonInstance']
 
-    ssc.start()
-    ssc.awaitTermination()
+zkQuorum, topic = sys.argv[1:]
+kafka_stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
+parsed = kafka_stream.map(lambda (k,v): json.loads(v))
+
+
+def process(time, rdd):
+  print("========= %s =========" % str(time))
+  try:
+    rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name']))
+    df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+    df.registerTempTable("df")
+    df.show()
+  except:
+    pass
+
+parsed.foreachRDD(process)
+ssc.start()
+ssc.awaitTermination()
 
