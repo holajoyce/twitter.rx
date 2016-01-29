@@ -19,6 +19,7 @@ def get_list_of_drug_comps():
     
     
 def create_curl_index_file():
+    print("create indicies files")
     drug_companies = get_list_of_drug_comps()
     curl_templ_file = open(mydir+"/curl_templ","r")
     curl_templ_str = curl_templ_file.read()
@@ -42,10 +43,13 @@ def create_indexes_helper(drug_comp=None):
     print(curl_file_str)
     sproc = Popen(curl_file_str, stdout=PIPE, shell=True)
     out, err = sproc.communicate()
+    if err :
+        print(err)
     print(out)
 
 
 def create_indexes(drug_comp=None):
+    print("create all indicies")
     if(drug_comp!=None):
         create_indexes_helper(drug_comp)
     else:
@@ -55,8 +59,16 @@ def create_indexes(drug_comp=None):
                 create_indexes_helper(drug_company.rstrip('\n'))
 
 
+def delete_indices():
+    print("delete all indicies")
+    curl_cmd = "curl -XDELETE 'http://"+server+":9200/pharma_*/'"
+    sproc = Popen(curl_cmd, stdout=PIPE, shell=True)
+    out, err = sproc.communicate()
+    print(out)
+    
 
 if __name__=="__main__":
-    #create_curl_index_file()
+    delete_indices()
+    create_curl_index_file()
     #create_indexes("abbvie_inc")
     create_indexes()

@@ -54,13 +54,15 @@
                     "format": "strict_date_optional_time||epoch_millis",
                     "type": "date"
                 },
-                "tags": {
+                "pharma_won": {
                     "type": "string",
                     "index": "analyzed",
                     "analyzer": "comma_analyzer"                   
                 },
                 "id": {
-                    "type": "long"
+                    "type": "string",
+                    "index": "analyzed",
+                    "analyzer": "comma_analyzer"  
                 },
                 "body": {
                     "type": "string",
@@ -68,7 +70,12 @@
                     "analyzer": "whitespace_lower"                 
                 },
                 "author": {
-                    "type": "long"
+                    "type": "string",
+                    "index": "analyzed",
+                    "analyzer": "comma_analyzer"
+                },
+                "bidprice": {
+                	"type":	"long"
                 }
             }
         }
