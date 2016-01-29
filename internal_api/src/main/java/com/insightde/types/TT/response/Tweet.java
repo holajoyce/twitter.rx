@@ -50,7 +50,9 @@ public class Tweet implements GenericPost{
 	private Language lang;
 	private Place place;
 	private List<String> pharmatags = Lists.newArrayList();
+	private List<String> symptomtags = Lists.newArrayList();
 	private long created_utc = 0L;
+	
 
 	
 //	public Tweet(String id, String text){
@@ -293,6 +295,17 @@ public class Tweet implements GenericPost{
 
 	public void setCreated_utc(long created_utc) {
 		this.created_utc = created_utc;
+	}
+
+	@Override
+	public List<String> getSymptomtags() {
+		return symptomtags;
+	}
+
+	@Override
+	public void setSymptomtags(List<String> symptomtags) {
+		this.symptomtags = symptomtags;
+		
 	}
 }
 
