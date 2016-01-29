@@ -40,12 +40,12 @@ def create_templates_helper(drug_comp=None):
     print(file_path)
     curl_file = open(file_path,'r')
     curl_file_str = curl_file.read()
-    print(curl_file_str)
+    #print(curl_file_str)
     sproc = Popen(curl_file_str, stdout=PIPE, shell=True)
     out, err = sproc.communicate()
     if err :
         print(err)
-    print(out)
+    #print(out)
 
 
 def create_template(drug_comp=None):
