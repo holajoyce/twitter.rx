@@ -51,7 +51,7 @@
         "ZZZ": {
             "properties": {
                 "@timestamp": {
-                    "format": "strict_date_optional_time||epoch_millis",
+                    "format": "strict_date_optional_time||epoch_seconds",
                     "type": "date"
                 },
                 "pharma_won": {

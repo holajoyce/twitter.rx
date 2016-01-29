@@ -3,7 +3,7 @@ import sys
 from subprocess import Popen, PIPE
 
 """
-this script create curl files for elasticsearch
+code generation to create indexing templates for ES
 """
 mydir = os.path.dirname(os.path.realpath(sys.argv[0]))
 server = "ec2-52-88-7-3.us-west-2.compute.amazonaws.com"
