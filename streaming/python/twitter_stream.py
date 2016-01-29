@@ -46,7 +46,7 @@ parsed = kafka_stream.map(lambda (k,v): json.loads(v))
 def process(time, rdd):
   print("========= %s =========" % str(time))
   try:
-    rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name']))
+    rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['text'], created_at_utc=w['timestamp_ms'][0:9]))
     df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     df.registerTempTable("df")
     df.show()
