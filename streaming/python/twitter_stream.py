@@ -1,68 +1,24 @@
-import sys
-
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
 from pyspark.sql import SQLContext, Row
-
 from pyspark import SparkConf
 from pyspark.sql.types import *
-#from cassandra.cluster import Cluster
-#from cassandra import ConsistencyLevel
-#from cqlengine import connection
-#from cqlengine import columns
-#from cqlengine.models import Model
-#from cqlengine.management import sync_table
-
-# ingest from kafka
+import json
 
 sc = SparkContext(appName="TwitterApp")
 ssc = StreamingContext(sc, 2)
 sqlContext = SQLContext(sc)
-import json
 
-brokers, topic = sys.argv[1:]
-kafkaStream = KafkaUtils.createDirectStream(ssc, [topic], {"metadata.broker.list": brokers})
+
+kafkaStream = KafkaUtils.createStream(ssc, "ip-172-31-1-136:2181,ip-172-31-1-137:2181,ip-172-31-1-133:2181,ip-172-31-1-139:2181", "spark-streaming consumer", {"reddit4": 1})
 lines = kafkaStream.map(lambda x: x[1])
 
-def process(rdd):
-    # see https://spark.apache.org/docs/1.5.2/sql-programming-guide.html#json-datasets
-    # convert each line to a Row
-	#df=sqlContext.createDataFrame(rdd)
-	#df.show()
-	rowRdd = rdd.map(lambda w: Row(message=json.loads(w)["message"] 
-		, user_screen_name=json.loads(w)["user_screen_name"]
-		, user_lang=json.loads(w)["user_lang"]
-		, created_at=json.loads(w)["created_at"]
-		))
-	rowRdd.toDF()
-
-	# enrich
-
- 	r = requests.post("http://localhost:8555/tagbatch", data = df.toJSON())
-	
-
-
-	df_news = sqlContext.createDataFrame(rowRdd)
-	tmp = df_news.take(1)
-	print(tmp)
-	#for row in df_news.collect():
-		#print(row)
-		#print(row.message)
-    #schemaTweet.registerTempTable("Tweet")
-	#schemaTweet.show()
-    
-	# for row in df_news.collect():
-    #    session.execute(st_news, (row.company, row.summary, row.newstime, row.author, row.newsoutlet, row.source, ))
-
-lines.foreachRDD(process)
-
-# counts = lines.flatMap(lambda line: line.split(" ")) \
-#     .map(lambda word: (word, 1)) \
-#     .reduceByKey(lambda a, b: a+b)
-# counts.pprint()
-
-
+# {"name":"t1_c8770z6","author_flair_css_class":null,"author":"corey3","author_flair_text":null,"ups":1,"id":"c8770z6","edited":false,"retrieved_on":1431145410,"score_hidden":false,"gilded":0,"downs":0,"body":"also try to get ADHD medication.","controversiality":0,"subreddit_id":"t5_2qnwb","distinguished":null,"parent_id":"t1_c85yez1","subreddit":"ADHD","archived":true,"score":1,"link_id":"t3_17itl1"}
+counts = lines.flatMap(lambda line: line.split(" ")) \
+        .map(lambda word: (word, 1)) \
+        .reduceByKey(lambda a, b: a+b)
+counts.pprint()
 
 ssc.start()
 ssc.awaitTermination()
