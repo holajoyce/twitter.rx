@@ -122,13 +122,13 @@ public class IodineLuwakTagger  implements Tagger {
 		try{
 			Matches<HighlightsMatch> matches  = monitor.match(batch, HighlightingMatcher.FACTORY);
 			for (DocumentMatches<HighlightsMatch> docMatches : matches) {
-	            List<String>condition_tags = Lists.newArrayList();
+	            List<String>pharma_tags = Lists.newArrayList();
 	            for (HighlightsMatch match : docMatches) {
-	            	condition_tags.add(match.getQueryId());
+	            	pharma_tags.add(match.getQueryId());
 	            }
-	            if(!condition_tags.isEmpty()){
+	            if(!pharma_tags.isEmpty()){
 	            	GenericPost gp = (GenericPost) posts.get(docMatches.getDocId());
-	            	gp.setTags(condition_tags);
+	            	gp.setPharmatags(pharma_tags);
 	            }
 	        } 
 		}catch(IOException e){
@@ -150,18 +150,6 @@ public class IodineLuwakTagger  implements Tagger {
 	public void setMonitor(Monitor monitor) {
 		this.monitor = monitor;
 	}
-
-//	public Analyzer getANALYZER() {
-//		return ANALYZER;
-//	}
-
-//	public String getFIELD() {
-//		return FIELD;
-//	}
-
-//	public  String getDictionaryname() {
-//		return dictionaryDir;
-//	}
 
 	public List<MonitorQuery> getQueries() {
 		return queries;

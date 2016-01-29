@@ -18,7 +18,7 @@ def get_list_of_drug_comps():
     return drug_companies
     
     
-def create_curl_index_file():
+def create_curl_template_files():
     print("create indicies files")
     drug_companies = get_list_of_drug_comps()
     curl_templ_file = open(mydir+"/curl_templ","r")
@@ -35,7 +35,7 @@ def create_curl_index_file():
     curl_templ_file.close()
 
 
-def create_indexes_helper(drug_comp=None):
+def create_templates_helper(drug_comp=None):
     file_path = mydir+"/out/pharma_"+drug_comp+".curl"
     print(file_path)
     curl_file = open(file_path,'r')
@@ -48,18 +48,18 @@ def create_indexes_helper(drug_comp=None):
     print(out)
 
 
-def create_indexes(drug_comp=None):
-    print("create all indicies")
+def create_template(drug_comp=None):
+    print("create all templates")
     if(drug_comp!=None):
-        create_indexes_helper(drug_comp)
+        create_templates_helper(drug_comp)
     else:
         drug_companies = get_list_of_drug_comps()
         for drug_company in drug_companies:
             if drug_company.strip()!="" and drug_company is not None:
-                create_indexes_helper(drug_company.rstrip('\n'))
+                create_templates_helper(drug_company.rstrip('\n'))
 
 
-def delete_indices():
+def delete_templates():
     print("delete all indicies")
     curl_cmd = "curl -XDELETE 'http://"+server+":9200/pharma_*/'"
     sproc = Popen(curl_cmd, stdout=PIPE, shell=True)
@@ -68,7 +68,8 @@ def delete_indices():
     
 
 if __name__=="__main__":
-    delete_indices()
-    create_curl_index_file()
-    #create_indexes("abbvie_inc")
-    create_indexes()
+    delete_templates()
+    create_curl_template_files()
+    
+    create_template()
+    #create_template("abbvie_inc")

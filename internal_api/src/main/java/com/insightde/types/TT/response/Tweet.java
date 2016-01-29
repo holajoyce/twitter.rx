@@ -49,7 +49,7 @@ public class Tweet implements GenericPost{
 	private TwitterUser user;
 	private Language lang;
 	private Place place;
-	private List<String> tags = Lists.newArrayList();
+	private List<String> pharmatags = Lists.newArrayList();
 	private long created_utc = 0L;
 
 	
@@ -192,34 +192,34 @@ public class Tweet implements GenericPost{
 	}
 
 	// truncated version of original post for indexing
-	public  Map<String, Object> transformTT() {
-		Map<String, Object> data = new HashMap<String, Object>();
-		Map<String, Object> place = new HashMap<String, Object>();
-		Map<String, Object> bounding_box = new HashMap<String, Object>();
-//		List<String> hashtags = this.getEntities().getHashtagsAsStrings();
-		data.put("user_id", this.getUser().getScreen_name());
-		data.put("post_id", this.getId());
-		data.put("@timestamp", logstashDateFormat.format(this.getCreated_at()));
-		data.put("created_utc", this.getCreated_utc());
-		data.put("message", this.getText());
-		data.put("lang", this.getLang().toString());
-//		if (!hashtags.isEmpty()) {
-//			data.put("hashtags", hashtags);
+//	public  Map<String, Object> transformTT() {
+//		Map<String, Object> data = new HashMap<String, Object>();
+//		Map<String, Object> place = new HashMap<String, Object>();
+//		Map<String, Object> bounding_box = new HashMap<String, Object>();
+////		List<String> hashtags = this.getEntities().getHashtagsAsStrings();
+//		data.put("user_id", this.getUser().getScreen_name());
+//		data.put("post_id", this.getId());
+//		data.put("@timestamp", logstashDateFormat.format(this.getCreated_at()));
+//		data.put("created_utc", this.getCreated_utc());
+//		data.put("message", this.getText());
+//		data.put("lang", this.getLang().toString());
+////		if (!hashtags.isEmpty()) {
+////			data.put("hashtags", hashtags);
+////		}
+//		if(!this.getTags().isEmpty()){
+//			data.put("tags", this.getTags());
 //		}
-		if(!this.getTags().isEmpty()){
-			data.put("tags", this.getTags());
-		}
-		if (this.getPlace() != null) {
-			bounding_box.put("type", this.getPlace().getBounding_box().getType());
-			bounding_box.put("coordinates", this.getPlace().getBounding_box().getCoordinates());
-			place.put("id", this.getPlace().getId());
-			place.put("bounding_box", bounding_box);
-			place.put("name", this.getPlace().getName());
-			place.put("country_code", this.getPlace().getCountry_code());
-			data.put("place", place);
-		}
-		return data;
-	}
+//		if (this.getPlace() != null) {
+//			bounding_box.put("type", this.getPlace().getBounding_box().getType());
+//			bounding_box.put("coordinates", this.getPlace().getBounding_box().getCoordinates());
+//			place.put("id", this.getPlace().getId());
+//			place.put("bounding_box", bounding_box);
+//			place.put("name", this.getPlace().getName());
+//			place.put("country_code", this.getPlace().getCountry_code());
+//			data.put("place", place);
+//		}
+//		return data;
+//	}
 	
 	public String getId_str() {
 		return id_str;
@@ -229,12 +229,12 @@ public class Tweet implements GenericPost{
 		this.id_str = id_str;
 	}
 
-	public List<String> getTags() {
-		return tags;
+	public List<String> getPharmatags() {
+		return pharmatags;
 	}
 
-	public void setTags(List<String> tags) {
-		this.tags = tags;
+	public void setPharmatags(List<String> tags) {
+		this.pharmatags = tags;
 	}
 
 	

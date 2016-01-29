@@ -4,8 +4,8 @@ import java.util.List;
 
 public interface GenericPost {
 	
-	public List<String> getTags();
-	public void setTags(List<String> tags);
+	public List<String> getPharmatags();
+	public void setPharmatags(List<String> pharmatags);
 	
 //	public String getRelevantText();
 	public String getBody();

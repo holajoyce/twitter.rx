@@ -33,7 +33,7 @@ public class Reddit implements GenericPost{
 	private String id;
 	private String author;
 	private String body;
-	private List<String> tags = Lists.newArrayList();
+	private List<String> phramatags = Lists.newArrayList();
 
 	
 	public static Reddit jsonToPojo(String msg) {
@@ -82,12 +82,12 @@ public class Reddit implements GenericPost{
 	}
 
 
-	public List<String> getTags() {
-		return tags;
+	public List<String> getPharmatags() {
+		return phramatags;
 	}
 
-	public void setTags(List<String> tags) {
-		this.tags = tags;
+	public void setPharmatags(List<String> pharmatags) {
+		this.phramatags = pharmatags;
 	}
 
 	public String getId() {
