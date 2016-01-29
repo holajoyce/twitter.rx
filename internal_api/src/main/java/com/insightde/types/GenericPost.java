@@ -7,6 +7,8 @@ public interface GenericPost {
 	public List<String> getPharmatags();
 	public void setPharmatags(List<String> pharmatags);
 	
-//	public String getRelevantText();
+	public List<String> getSymptomtags();
+	public void setSymptomtags(List<String> symptomtags);
+	
 	public String getBody();
 }

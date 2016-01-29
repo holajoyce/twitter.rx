@@ -34,7 +34,7 @@ public class Reddit implements GenericPost{
 	private String author;
 	private String body;
 	private List<String> phramatags = Lists.newArrayList();
-
+	private List<String> symptomtags = Lists.newArrayList();
 	
 	public static Reddit jsonToPojo(String msg) {
 		mapper = new ObjectMapper();
@@ -98,16 +98,20 @@ public class Reddit implements GenericPost{
 		this.id = id;
 	}
 
-
-
 	public Long getCreated_utc() {
 		return created_utc;
 	}
 
-
-
 	public void setCreated_utc(Long created_utc) {
 		this.created_utc = created_utc;
+	}
+
+	public List<String> getSymptomtags() {
+		return symptomtags;
+	}
+
+	public void setSymptomtags(List<String> symptomtags) {
+		this.symptomtags = symptomtags;
 	}
 	
 }

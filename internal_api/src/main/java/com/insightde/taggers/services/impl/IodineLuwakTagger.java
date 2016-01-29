@@ -123,12 +123,18 @@ public class IodineLuwakTagger  implements Tagger {
 			Matches<HighlightsMatch> matches  = monitor.match(batch, HighlightingMatcher.FACTORY);
 			for (DocumentMatches<HighlightsMatch> docMatches : matches) {
 	            List<String>pharma_tags = Lists.newArrayList();
+	            List<String>symptom_tags = Lists.newArrayList();
 	            for (HighlightsMatch match : docMatches) {
 	            	pharma_tags.add(match.getQueryId());
+//	            	System.out.println(match);
+	            	//symptom_tags.addAll(match.getFields());
+	            	//symptom_tags.add(match.getDocId());
 	            }
+	            
 	            if(!pharma_tags.isEmpty()){
 	            	GenericPost gp = (GenericPost) posts.get(docMatches.getDocId());
 	            	gp.setPharmatags(pharma_tags);
+//	            	gp.setSymptomtags(symptom_tags);
 	            }
 	        } 
 		}catch(IOException e){

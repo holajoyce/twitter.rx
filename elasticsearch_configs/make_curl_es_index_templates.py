@@ -48,6 +48,18 @@ def create_templates_helper(drug_comp=None):
     #print(out)
 
 
+def create_logstash_template():
+    file_path = mydir+"/logstash.curl"
+    print(file_path)
+    curl_file = open(file_path,'r')
+    curl_file_str = curl_file.read()
+    print(curl_file_str)
+    sproc = Popen(curl_file_str, stdout=PIPE, shell=True)
+    out, err = sproc.communicate()
+    if err :
+        print(err)
+    
+
 def create_template(drug_comp=None):
     print("create all templates")
     if(drug_comp!=None):
@@ -59,17 +71,28 @@ def create_template(drug_comp=None):
                 create_templates_helper(drug_company.rstrip('\n'))
 
 
+def delete_logstash_template():
+    print("delete all indicies")
+    curl_cmd = "curl -XDELETE 'http://"+server+":9200/_template/logstash*/'"
+    sproc = Popen(curl_cmd, stdout=PIPE, shell=True)
+    out, err = sproc.communicate()
+    print(out)
+    
 def delete_templates():
     print("delete all indicies")
-    curl_cmd = "curl -XDELETE 'http://"+server+":9200/pharma_*/'"
+    curl_cmd = "curl -XDELETE 'http://"+server+":9200/_template/pharma_*/'"
     sproc = Popen(curl_cmd, stdout=PIPE, shell=True)
     out, err = sproc.communicate()
     print(out)
     
 
 if __name__=="__main__":
-    delete_templates()
-    create_curl_template_files()
+    # multi indicies
+    #delete_templates()
+    #create_curl_template_files()
+    #create_template()
+
+    # logstash only
+    delete_logstash_template()
+    create_logstash_template()
     
-    create_template()
-    #create_template("abbvie_inc")
