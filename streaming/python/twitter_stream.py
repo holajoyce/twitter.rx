@@ -40,8 +40,10 @@ def getSqlContextInstance(sparkContext):
 
 zkQuorum, topic = sys.argv[1:]
 kafka_stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
-parsed = kafka_stream.map(lambda (k,v): json.loads(v))
+parsed = kafka_stream.map(parse_json)
 
+def parse_json(k,v):
+  lambda (k,v): json.loads(v)
 
 def process(time, rdd):
   print("========= %s =========" % str(time))
