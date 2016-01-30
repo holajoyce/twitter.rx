@@ -23,6 +23,7 @@ from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
 from pyspark.sql import SQLContext, Row
 import json
+import requests
 
 # https://github.com/apache/spark/blob/master/examples/src/main/python/streaming/sql_network_wordcount.py
 # https://github.com/willzfarmer/TwitterPanic/blob/master/python/analysis.py
@@ -40,10 +41,10 @@ def getSqlContextInstance(sparkContext):
 
 zkQuorum, topic = sys.argv[1:]
 kafka_stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
-parsed = kafka_stream.map(parse_json)
 
-def parse_json(k,v):
-  lambda (k,v): json.loads(v)
+
+def parse_json(v):
+  return (None, json.loads(v))
 
 def process(time, rdd):
   print("========= %s =========" % str(time))
@@ -51,10 +52,14 @@ def process(time, rdd):
     rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['text'], created_at_utc=w['timestamp_ms'][0:9]))
     df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     df.registerTempTable("df")
-    df.show()
+    df_json = df.toJSON()
+    first = df_json.first()
+    print(first)
+    #df_json.show()
   except:
     pass
 
+parsed = kafka_stream.map(lambda (k,v): json.loads(v))
 parsed.foreachRDD(process)
 ssc.start()
 ssc.awaitTermination()
