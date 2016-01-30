@@ -38,7 +38,6 @@ public class Tweet implements GenericPost{
 	// Member Variables
 	public Long id;
 	public String id_str;
-
 	private String text;
 	private Date created_at;
 	private int favorite_count;
@@ -53,7 +52,6 @@ public class Tweet implements GenericPost{
 	private List<String> symptomtags = Lists.newArrayList();
 	private long created_utc = 0L;
 	
-
 	
 //	public Tweet(String id, String text){
 //		this.id_str = id;

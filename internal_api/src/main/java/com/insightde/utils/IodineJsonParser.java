@@ -67,18 +67,14 @@ public class IodineJsonParser {
 	// symptoms -> condition
 	//  conditions -> drugs -> drug companies
 	private void readConditionFromJson(String json){
-		
 		ReadContext ctx = JsonPath.parse(json);
-		
 		Map<String,Set<String>> drug_names_companies = Maps.newHashMap();
 		try{
-			
 			String condition = ctx.read("$.condition.name");
 			condition_drug_companies.put(condition,drug_names_companies);
 			Set<String> symptoms = new HashSet<String>(ctx.read("$.condition.symptoms"));
 			conditions_symptoms.put(condition, symptoms);
 			insertIntoConditionsSymptoms(symptoms, condition);
-//			#insertIntoSymptomsDrugCompanies(conditions,drug_companies);
 			
 			List<String> drugs_names = ctx.read("$.drugs[*].name");		
 			for(Integer i=0;i<drugs_names.size();i++){
@@ -86,18 +82,13 @@ public class IodineJsonParser {
 				List<String> drug_companies_lst = new ArrayList<String>(ctx.read("$.drugs["+i.toString()+"].images[*].labeler"));
 				replace(drug_companies_lst);
 				drug_companies.addAll(drug_companies_lst);
-
 				System.out.println(drug_companies);
-				
 				if(drug_companies.size()>0){
 					drug_names_companies.put(drugs_names.get(i), drug_companies);
 					all_drug_companies.addAll(drug_companies);
 					insertIntoSymptomsDrugComps(symptoms,drug_companies);
 				}
 			}
-			
-			
-			
 		}catch(Exception e){
 		}
 	}

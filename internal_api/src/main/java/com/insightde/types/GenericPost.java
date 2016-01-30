@@ -11,4 +11,5 @@ public interface GenericPost {
 	public void setSymptomtags(List<String> symptomtags);
 	
 	public String getBody();
+	public String getIdAsStr();
 }

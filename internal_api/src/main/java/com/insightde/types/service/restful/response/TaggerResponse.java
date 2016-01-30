@@ -3,6 +3,8 @@ package com.insightde.types.service.restful.response;
 import static org.apache.log4j.Logger.getLogger;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -21,19 +23,16 @@ public class TaggerResponse {
 	private static final Logger logger = getLogger(TaggerResponse.class);
     
 	private String status;
-    
+    private Map<String,Reddit> taggerResp =null;
+     
     public String getStatus() {
 		return status;
 	}
-    private Map<String,Reddit> taggerResp =null;
-    
-    
     public void setStatus(String status) {
 		this.status = status;
 	}
-
-    public Map<String, Reddit> getTaggerResp() {
-		return taggerResp;
+    public List< Reddit> getTaggerResp() {
+    	return new ArrayList<Reddit>(taggerResp.values());
 	}
 
 	public void setTaggerResp(Map<String, Reddit> taggerResp) {
@@ -46,16 +45,18 @@ public class TaggerResponse {
 	
 	@Override
 	public String toString() {
-		
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
-		
-		String jsonInString="";
-		try {
-			jsonInString = mapper.writeValueAsString(this);
-		} catch (JsonProcessingException e) {
+		List<Reddit> enrichedReddits= getTaggerResp();
+		StringBuilder sb = new StringBuilder();
+		int count =0;
+		for(Reddit reddit: enrichedReddits){
+			if(count>0)
+				sb.append("\n");
+			sb.append(reddit.toString());
+			count+=1;
 		}
-		return jsonInString;
+		return sb.toString();
 	}
 	
 	public static TaggerResponse jsonToPojo(String json){

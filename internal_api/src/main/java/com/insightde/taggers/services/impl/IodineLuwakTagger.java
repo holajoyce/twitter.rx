@@ -107,40 +107,33 @@ public class IodineLuwakTagger  implements Tagger {
 			logger.error(e.getMessage());
 		}
 	} // registerQueries
+
 	
-	
-	public <T> Map<String, T> enrichBatchOfPosts(Map<String, T> posts)  {
-		if (posts.isEmpty()) 
-			return posts;
-		
+	public <T> Map<String, T> enrichPost(Map<String, T> post)  {
+		if (post.isEmpty()) 
+			return post;
 		List<InputDocument> docs = new ArrayList<>();
-		
-		for (String key:posts.keySet()){
-			docs.add( InputDocument.builder(key).addField( this.FIELD, ((GenericPost) posts.get(key)).getBody(), this.ANALYZER).build());
+		Set<String> keys = post.keySet();
+		for (String key:keys){
+			docs.add( InputDocument.builder(key).addField( this.FIELD, ((GenericPost) post.get(key)).getBody(), this.ANALYZER).build());
 		}
 		DocumentBatch batch = DocumentBatch.of(docs);
 		try{
 			Matches<HighlightsMatch> matches  = monitor.match(batch, HighlightingMatcher.FACTORY);
 			for (DocumentMatches<HighlightsMatch> docMatches : matches) {
 	            List<String>pharma_tags = Lists.newArrayList();
-	            List<String>symptom_tags = Lists.newArrayList();
 	            for (HighlightsMatch match : docMatches) {
 	            	pharma_tags.add(match.getQueryId());
-//	            	System.out.println(match);
-	            	//symptom_tags.addAll(match.getFields());
-	            	//symptom_tags.add(match.getDocId());
 	            }
-	            
 	            if(!pharma_tags.isEmpty()){
-	            	GenericPost gp = (GenericPost) posts.get(docMatches.getDocId());
+	            	GenericPost gp = (GenericPost) post.get(docMatches.getDocId());
 	            	gp.setPharmatags(pharma_tags);
-//	            	gp.setSymptomtags(symptom_tags);
 	            }
 	        } 
 		}catch(IOException e){
 			logger.error(e.getMessage());
 		}
-		return posts;
+		return post;
 	}
 	
 	

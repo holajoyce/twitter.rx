@@ -3,6 +3,8 @@ package com.insightde.service.restful;
 import static org.apache.log4j.Logger.getLogger;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 //import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.insightde.ApplicationModeType;
 import com.insightde.taggers.services.Tagger;
@@ -39,23 +43,21 @@ public class TaggerController {
 	public static final String applicationModeName = applicationMode.getLongname();
 	
 	private  Tagger tagger ;
-//	private IodineJsonParser ijp;
 	
 	public TaggerController(){
-
-		tagger =new IodineLuwakTagger();
-		tagger.setDatasourceType(DataSourceType.TT);
+		tagger = new IodineLuwakTagger();
 	}
-
+	
+	
 	@RequestMapping(value = "/tagbatch", method = RequestMethod.POST)
-	public String process(
+	public String processMapBatch(
 			@RequestParam(value="datasource",required=false) String datasource,
 			@RequestBody String jsonString
 	) throws JsonParseException, JsonMappingException, IOException{
-		Reddit tt = Reddit.jsonToPojo(jsonString);
-		Map<String,Reddit> payload = Maps.newConcurrentMap();
-		payload.put(tt.getId(), tt);
-		Map<String,Reddit> enriched = tagger.enrichBatchOfPosts(payload);
+		
+		Map<String,Reddit> payload = Maps.newHashMap();
+		payload.put("0", new ObjectMapper().readValue(jsonString,Reddit.class));
+		Map<String,Reddit> enriched = tagger.enrichPost(payload);
 		TaggerResponse tr = new TaggerResponse();
 		tr.setTaggerResp(enriched);
 		String ret =  tr.toString();

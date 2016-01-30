@@ -22,7 +22,7 @@ public interface Tagger {
 //	public List<MonitorQuery> getQueries() ;
 	
 	public void setQueries(List<MonitorQuery> queries) ;
-	public <T> Map<String, T> enrichBatchOfPosts(Map<String, T> posts);
+	public <T> Map<String, T> enrichPost(Map<String, T> posts);
 	
 	public DataSourceType getDatasourceType() ;
 	public void setDatasourceType(DataSourceType datasourceType);

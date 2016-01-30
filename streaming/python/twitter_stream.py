@@ -31,9 +31,12 @@ import requests
 # https://rideondata.wordpress.com/2015/06/29/analyzing-wikipedia-text-with-pyspark/
 # https://github.com/andyikchu/insightproject/blob/master/realtime_processing/twitter_stream.py
 # http://will-farmer.com/twitter-civil-unrest-analysis-with-apache-spark.html
+# https://docs.cloud.databricks.com/docs/latest/databricks_guide/08%20Spark%20Streaming/06%20FileStream%20Word%20Count%20-%20Python.html
 
 sc = SparkContext(appName="stream_tagger")
 ssc = StreamingContext(sc, 1)
+tagger_url = "http://localhost:8555/"
+
 
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
@@ -43,31 +46,54 @@ def getSqlContextInstance(sparkContext):
 zkQuorum, topic = sys.argv[1:]
 stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
 
-def tfunc(t, rdd):
+lines_count =0;
+LINES_COUNT_MAX=100;
+
+def tfunc_transform_data_stream(t, rdd):
   """
   Transforming function. Converts our blank RDD to something usable
   :param t: datetime
   :param rdd: rdd
       Current rdd we're mapping to
   """
-  return rdd.flatMap(lambda x: stream_twitter_data(x))
+  return rdd.flatMap(lambda x: transform_data_stream(x))
 
-def stream_twitter_data(x):
-  print(x)
-  yield x
+
+
+def transform_data_stream(line):
+  print("========= transform data stream method starting %s =========" % str(time))
+  print(line)
+  line_enriched  = requests.post(query_url,data=line)
+  yield line
   # data      = [('language', 'en'), ('locations', '-130,20,-60,50')]
   # # query_url = config.url + '?' + '&'.join([str(t[0]) + '=' + str(t[1]) for t in data])
-
-  # line  = requests.post(query_url,)
   # post = json.loads(line.decode('utf-8'))
   # print(line)
+  print("========= end data stream method starting %s =========" % str(time))
+
+
+def transform_batch_data_stream(line):
+  print("========= transform batch data stream method starting %s =========" % str(time))
+  dict = {}
+  if(lines_count<LINES_COUNT_MAX):
+
+  print(line)
+  line_enriched  = requests.post(query_url,data=line)
+  yield line
+  # data      = [('language', 'en'), ('locations', '-130,20,-60,50')]
+  # # query_url = config.url + '?' + '&'.join([str(t[0]) + '=' + str(t[1]) for t in data])
+  # post = json.loads(line.decode('utf-8'))
+  # print(line)
+  print("========= end data stream method starting %s =========" % str(time))
 
 
 def parse_json(v):
   return (None, json.loads(v))
 
+
+
 def process(time, rdd):
-  print("========= %s =========" % str(time))
+  print("========= process method starting %s =========" % str(time))
   try:
     rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['text'], created_at_utc=w['timestamp_ms'][0:9]))
     df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
@@ -78,8 +104,11 @@ def process(time, rdd):
     #df_json.show()
   except:
     pass
+  print("========= process method ends %s =========" % str(time))
 
-stream = stream.transform(tfunc)
+
+
+stream = stream.transform(tfunc_transform_data_stream)
 parsed = stream.map(lambda (k,v): json.loads(v))
 parsed.foreachRDD(process)
 ssc.start()

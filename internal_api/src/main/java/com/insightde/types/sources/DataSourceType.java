@@ -4,6 +4,7 @@ package com.insightde.types.sources;
 public enum DataSourceType {
 	
 	TT("Twitter", "TT"),
+	RD("Reddit","RD"),
 	FB("Facebook", "FB");
 	
 
