@@ -30,17 +30,37 @@ import requests
 # https://raw.githubusercontent.com/rustyrazorblade/killranalytics/intro_streaming_python2/killranalytics/spark/raw_event_stream_processing.py
 # https://rideondata.wordpress.com/2015/06/29/analyzing-wikipedia-text-with-pyspark/
 # https://github.com/andyikchu/insightproject/blob/master/realtime_processing/twitter_stream.py
+# http://will-farmer.com/twitter-civil-unrest-analysis-with-apache-spark.html
 
 sc = SparkContext(appName="stream_tagger")
 ssc = StreamingContext(sc, 1)
 
 def getSqlContextInstance(sparkContext):
-    if ('sqlContextSingletonInstance' not in globals()):
-        globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
-    return globals()['sqlContextSingletonInstance']
+  if ('sqlContextSingletonInstance' not in globals()):
+      globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
+  return globals()['sqlContextSingletonInstance']
 
 zkQuorum, topic = sys.argv[1:]
-kafka_stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
+stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
+
+def tfunc(t, rdd):
+  """
+  Transforming function. Converts our blank RDD to something usable
+  :param t: datetime
+  :param rdd: rdd
+      Current rdd we're mapping to
+  """
+  return rdd.flatMap(lambda x: stream_twitter_data(x))
+
+def stream_twitter_data(x):
+  print(x)
+  yield x
+  # data      = [('language', 'en'), ('locations', '-130,20,-60,50')]
+  # # query_url = config.url + '?' + '&'.join([str(t[0]) + '=' + str(t[1]) for t in data])
+
+  # line  = requests.post(query_url,)
+  # post = json.loads(line.decode('utf-8'))
+  # print(line)
 
 
 def parse_json(v):
@@ -52,14 +72,15 @@ def process(time, rdd):
     rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['text'], created_at_utc=w['timestamp_ms'][0:9]))
     df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     df.registerTempTable("df")
-    df_json = df.toJSON()
-    first = df_json.first()
+    df_jsons = df.toJSON()
+    first = df_jsons.first()
     print(first)
     #df_json.show()
   except:
     pass
 
-parsed = kafka_stream.map(lambda (k,v): json.loads(v))
+stream = stream.transform(tfunc)
+parsed = stream.map(lambda (k,v): json.loads(v))
 parsed.foreachRDD(process)
 ssc.start()
 ssc.awaitTermination()
