@@ -30,12 +30,12 @@ import requests
 # https://raw.githubusercontent.com/rustyrazorblade/killranalytics/intro_streaming_python2/killranalytics/spark/raw_event_stream_processing.py
 # https://rideondata.wordpress.com/2015/06/29/analyzing-wikipedia-text-with-pyspark/
 # https://github.com/andyikchu/insightproject/blob/master/realtime_processing/twitter_stream.py
-# http://will-farmer.com/twitter-civil-unrest-analysis-with-apache-spark.html
+# https://github.com/willzfarmer/TwitterPanic/tree/master/python
 # https://docs.cloud.databricks.com/docs/latest/databricks_guide/08%20Spark%20Streaming/06%20FileStream%20Word%20Count%20-%20Python.html
 
 sc = SparkContext(appName="stream_tagger")
 ssc = StreamingContext(sc, 1)
-tagger_url = "http://localhost:8555/"
+tagger_url = "http://localhost:8555/tagbatch"
 
 
 def getSqlContextInstance(sparkContext):
@@ -64,27 +64,13 @@ def transform_data_stream(line):
   print("========= transform data stream method starting %s =========" % str(time))
   print(line)
   line_enriched  = requests.post(query_url,data=line)
-  yield line
+  yield line_enriched
   # data      = [('language', 'en'), ('locations', '-130,20,-60,50')]
   # # query_url = config.url + '?' + '&'.join([str(t[0]) + '=' + str(t[1]) for t in data])
   # post = json.loads(line.decode('utf-8'))
   # print(line)
   print("========= end data stream method starting %s =========" % str(time))
 
-
-def transform_batch_data_stream(line):
-  print("========= transform batch data stream method starting %s =========" % str(time))
-  dict = {}
-  if(lines_count<LINES_COUNT_MAX):
-
-  print(line)
-  line_enriched  = requests.post(query_url,data=line)
-  yield line
-  # data      = [('language', 'en'), ('locations', '-130,20,-60,50')]
-  # # query_url = config.url + '?' + '&'.join([str(t[0]) + '=' + str(t[1]) for t in data])
-  # post = json.loads(line.decode('utf-8'))
-  # print(line)
-  print("========= end data stream method starting %s =========" % str(time))
 
 
 def parse_json(v):
