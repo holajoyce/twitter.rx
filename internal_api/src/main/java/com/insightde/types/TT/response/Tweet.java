@@ -13,6 +13,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import com.insightde.types.GenericPost;
 import com.insightde.types.TT.response.place.Place;
@@ -149,31 +151,43 @@ public class Tweet implements GenericPost{
 	public void setUser(TwitterUser user) {
 		this.user = user;
 	}
-
+	
 	@Override
-	public String toString() {
-		StringBuilder result = new StringBuilder();
-		String newLine = System.getProperty("line.separator");
-		result.append(this.getClass().getName());
-		result.append(" Object {");
-		result.append(newLine);
-		Field[] fields = this.getClass().getDeclaredFields();
-
-		// print field names paired with their values
-		for (Field field : fields) {
-			result.append("  ");
-			try {
-				result.append(field.getName());
-				result.append(": ");
-				result.append(field.get(this));
-			} catch (IllegalAccessException ex) {
-				System.out.println(ex);
-			}
-			result.append(newLine);
+	public String toString(){
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		String jsonInString="";
+		try {
+			jsonInString = mapper.writeValueAsString(this);
+		} catch (JsonProcessingException e) {
 		}
-		result.append("}");
-		return result.toString();
+		return jsonInString;
 	}
+
+//	@Override
+//	public String toString() {
+//		StringBuilder result = new StringBuilder();
+//		String newLine = System.getProperty("line.separator");
+//		result.append(this.getClass().getName());
+//		result.append(" Object {");
+//		result.append(newLine);
+//		Field[] fields = this.getClass().getDeclaredFields();
+//
+//		// print field names paired with their values
+//		for (Field field : fields) {
+//			result.append("  ");
+//			try {
+//				result.append(field.getName());
+//				result.append(": ");
+//				result.append(field.get(this));
+//			} catch (IllegalAccessException ex) {
+//				System.out.println(ex);
+//			}
+//			result.append(newLine);
+//		}
+//		result.append("}");
+//		return result.toString();
+//	}
 
 	public Language getLang() {
 		return lang;
