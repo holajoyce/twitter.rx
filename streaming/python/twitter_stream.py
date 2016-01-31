@@ -36,18 +36,21 @@ import unicodedata
 # https://github.com/willzfarmer/TwitterPanic/tree/master/python
 # https://docs.cloud.databricks.com/docs/latest/databricks_guide/08%20Spark%20Streaming/06%20FileStream%20Word%20Count%20-%20Python.html
 
-sc = SparkContext(appName="stream_tagger")
-ssc = StreamingContext(sc, 1)
-tagger_url = "http://localhost:8555/tagbatch"
-
-
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
   return globals()['sqlContextSingletonInstance']
 
+
+sc = SparkContext(appName="stream_tagger")
+ssc = StreamingContext(sc, 1)
+
+
 zkQuorum, topic = sys.argv[1:]
 stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
+
+datasourcetype = "TT" if topic=="TT_raw" else "RD"
+tagger_url = "http://localhost:8555/tagbatch/"+datasourcetype
 
 lines_count =0;
 LINES_COUNT_MAX=100;
@@ -106,7 +109,7 @@ def printRdd(x):
   print(x)
 
 # lines = stream.map(lambda x: json.loads(x[1]))
-lines = stream.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ) )
+lines = stream.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1]))).json() )
 lines.foreachRDD(printRdd)
 
 # stream = stream.transform(tfunc_transform_data_stream)
