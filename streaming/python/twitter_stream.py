@@ -1,5 +1,5 @@
 # http://zdatainc.com/2014/08/real-time-streaming-apache-spark-streaming/
-
+# HI!
 """
  Counts words in UTF8 encoded, '\n' delimited text received from the network every second.
  Usage: kafka_wordcount.py <zk> <topic>
@@ -36,6 +36,15 @@ import unicodedata
 # https://github.com/willzfarmer/TwitterPanic/tree/master/python
 # https://docs.cloud.databricks.com/docs/latest/databricks_guide/08%20Spark%20Streaming/06%20FileStream%20Word%20Count%20-%20Python.html
 
+# difference between transform and map
+# https://mail-archives.apache.org/mod_mbox/spark-user/201402.mbox/%3CCAMwrk0nmMy7-9Q0nkoUBhm+X42O4=-nMDyMFGG2VzrdtJa_7_g@mail.gmail.com%3E
+
+# joining streams
+# https://spark.apache.org/docs/latest/streaming-programming-guide.html
+
+# multiple d-streams (tDas response)
+# http://apache-spark-user-list.1001560.n3.nabble.com/using-multiple-dstreams-together-spark-streaming-td9947.html
+
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
@@ -62,21 +71,15 @@ def tfunc_transform_data_stream(t, rdd):
   :param rdd: rdd
       Current rdd we're mapping to
   """
-  return rdd.flatMap(lambda x: transform_data_stream)
+  return rdd.flatmap(lambda x: transform_data_stream)
 
 
 
 def transform_data_stream(json_line):
   print("............. transform data stream method starting "+strftime("%Y-%m-%d %H:%M:%S", gmtime())+" .............")
-  # lineTuple.pprint()
-  line_enriched_json = requests.post(tagger_url,data=json.dumps(json_line)).json()
-  jstr = json.dumps(line_enriched_json)
-  print(jstr)
-  #line_enriched = line_enriched.encode('ascii','ignore')
-  #lineTuple = (lineTuple[0],jstr)
   print("............. end data stream method starting "+strftime("%Y-%m-%d %H:%M:%S", gmtime())+" ............." )
   #yield line_enriched.text.encode("utf-8")
-  yield jstr
+  yield json_line
   # data      = [('language', 'en'), ('locations', '-130,20,-60,50')]
   # # query_url = config.url + '?' + '&'.join([str(t[0]) + '=' + str(t[1]) for t in data])
   # post = json.loads(line.decode('utf-8'))
@@ -108,9 +111,16 @@ def printRdd(x):
   print(json.dumps(x.take(2)))
   print(x)
 
+
+
+
 # lines = stream.map(lambda x: json.loads(x[1]))
-lines = stream.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1]))).json() )
+
+lines = stream.transform(lambda rdd: rdd.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1]))).json()  ) )
 lines.foreachRDD(printRdd)
+
+# lines = stream.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1]))).json() )
+# lines.foreachRDD(printRdd)
 
 # stream = stream.transform(tfunc_transform_data_stream)
 # parsed = stream.map(lambda (k,v): json.loads(v))
