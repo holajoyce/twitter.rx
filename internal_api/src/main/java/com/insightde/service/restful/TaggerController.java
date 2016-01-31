@@ -54,7 +54,7 @@ public class TaggerController {
 			@RequestParam(value="datasource",required=false) String datasource,
 			@RequestBody String jsonString
 	) throws JsonParseException, JsonMappingException, IOException{
-		
+		logger.info(">>>>> received request for :"+jsonString);
 		Map<String,Reddit> payload = Maps.newHashMap();
 		payload.put("0", new ObjectMapper().readValue(jsonString,Reddit.class));
 		Map<String,Reddit> enriched = tagger.enrichPost(payload);
