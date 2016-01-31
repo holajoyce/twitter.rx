@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,35 +33,45 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 @RestController
-@ConditionalOnProperty(name="tagger.webservice")
+@ConditionalOnProperty(name = "tagger.webservice")
 public class TaggerController {
-	
-	
-	final static org.apache.log4j.Logger logger = getLogger(TaggerController.class);
-    private static Config conf = ConfigFactory.load();
 
-	public static final ApplicationModeType applicationMode = ApplicationModeType.findByShortName(conf.getString("application.mode"));
+	final static org.apache.log4j.Logger logger = getLogger(TaggerController.class);
+	private static Config conf = ConfigFactory.load();
+
+	public static final ApplicationModeType applicationMode = ApplicationModeType
+			.findByShortName(conf.getString("application.mode"));
 	public static final String applicationModeName = applicationMode.getLongname();
-	
-	private  Tagger tagger ;
-	
-	public TaggerController(){
+
+	private Tagger tagger;
+
+	public TaggerController() {
 		tagger = new IodineLuwakTagger();
 	}
-	
-	
-	@RequestMapping(value = "/tagbatch", method = RequestMethod.POST)
-	public String processMapBatch(
-			@RequestParam(value="datasource",required=false) String datasource,
-			@RequestBody String jsonString
-	) throws JsonParseException, JsonMappingException, IOException{
-		logger.info(">>>>> received request for :"+jsonString);
-		Map<String,Reddit> payload = Maps.newHashMap();
-		payload.put("0", new ObjectMapper().readValue(jsonString,Reddit.class));
-		Map<String,Reddit> enriched = tagger.enrichPost(payload);
-		TaggerResponse tr = new TaggerResponse();
-		tr.setTaggerResp(enriched);
-		String ret =  tr.toString();
-		return ret;
+
+	@RequestMapping(value = "/tagbatch/{socialMediaType}", method = RequestMethod.POST)
+	public String processMapBatch(@RequestParam(value = "datasource", required = false) String datasource,
+			@RequestBody String jsonString, @PathVariable String socialMediaType)
+					throws JsonParseException, JsonMappingException, IOException {
+		
+		logger.info(">>>>> received request for :" + jsonString);
+		DataSourceType ds = DataSourceType.findDSbyShortname(socialMediaType);
+		if ( ds== DataSourceType.RD) {
+			Map<String, Reddit> payload = Maps.newHashMap();
+			payload.put("0", new ObjectMapper().readValue(jsonString, Reddit.class));
+			Map<String, Reddit> enriched = tagger.enrichPost(payload);
+			TaggerResponse tr = new TaggerResponse(ds);
+			tr.setTaggerRespReddit(enriched);
+			String ret = tr.toString();
+			return ret;
+		}else if(ds== DataSourceType.TT){
+			Map<String, Tweet> payload = Maps.newHashMap();
+			payload.put("0", new ObjectMapper().readValue(jsonString, Tweet.class));
+			Map<String, Tweet> enriched = tagger.enrichPost(payload);
+			TaggerResponse tr = new TaggerResponse(ds);
+			tr.setTaggerRespTweet(enriched);
+			String ret = tr.toString();
+			return ret;
+		}return "";
 	}
 }
