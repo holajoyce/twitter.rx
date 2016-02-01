@@ -96,7 +96,7 @@ def printRdd(rdd):
   rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
   df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
   df.registerTempTable("df")
-  #new_df = df.select(df.author,df.body, explode(df.pharmatags).alias('pharmatag')).show
+  # new_df = df.select(df.author,df.body, explode(df.pharmatags).alias('pharmatag')).show
   df.show()
   #rowRdd = rdd.map(lambda w: Row(w))
   #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
@@ -117,7 +117,7 @@ def enrich(x):
 #------------
 
 # these two ways are the same
-lines_texts = stream.map(lambda x:    json.loads(   control_char_re.sub('',requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text) )  )
+lines_texts = stream.map(lambda x:    json.loads(   control_char_re.sub('',requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text ))  )
 #lines_texts = stream.transform(lambda rdd:rdd.map(  enrich  ) ) #WORKS!
 #lines_bids = stream2.map(lambda x: json.loads(x[0])) #works
 #lines_texts_with_bids = lines_texts.union(lines_bids) #works
