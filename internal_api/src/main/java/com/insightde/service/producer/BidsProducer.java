@@ -41,7 +41,7 @@ public class BidsProducer {
 	@Scheduled(fixedRate=30000)
 	public void produceBidsSimulation(){
 		for(String drug_comp : all_drug_companies){
-			Double bid = (double) (Nums.getRandomNumberInRange(1, 25)/100);
+			Double bid =   Nums.round(Nums.getRandomNumberInRange(1, 25)/100.00,2);
 			pharmaBids.put(drug_comp,bid.toString());
 			LOG.log("price", pharmaBids);
 		}
