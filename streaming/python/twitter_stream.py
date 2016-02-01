@@ -152,22 +152,22 @@ def tfunc(t,rdd,rddb):
     bids = bids.select(bids.price,bids.pharmatag)
     
     #---- texts ids joined with pharma bids
-    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,bids.pharmatag,bids.price)
+    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, bids.pharmatag,bids.price)
     idbids.registerAsTable("idbids")
 
     #-----texts id & bids, find min
-    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, pharmatag, max(price) as price FROM idbids GROUP BY id,pharmatag")
+    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, pharmatag")
     idsbidsmin.registerAsTable("idsbidsmin")
-    # idsbidsmin.show()
-    # idsbidsminJsonRDD = idsbidsmin.toJSON()
-    # return idsbidsminJsonRDD
+    idsbidsmin.show()
+    idsbidsminJsonRDD = idsbidsmin.toJSON()
+    return idsbidsminJsonRDD
 
     #----- join it back to full dataframe
-    textsbids = texts.join(idsbidsmin,texts.id==idsbidsmin.id,'inner').select(texts.id,texts.author,texts.body, texts.created_utc, idsbidsmin.pharmatag,idsbidsmin.price)
-    textsbids.registerAsTable("textsbids")
-    textsbids.show()
-    textsbidsJsonRDD = textsbids.toJSON()
-    return textsbidsJsonRDD
+    # textsbids = texts.join(idsbidsmin,texts.id==idsbidsmin.id,'inner').select(texts.id,texts.author,texts.body, texts.created_utc, idsbidsmin.pharmatag,idsbidsmin.price)
+    # textsbids.registerAsTable("textsbids")
+    # textsbids.show()
+    # textsbidsJsonRDD = textsbids.toJSON()
+    # return textsbidsJsonRDD
 
   except 'Exception':
     pass
