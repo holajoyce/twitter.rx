@@ -33,6 +33,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.util.Collections;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
@@ -50,7 +52,7 @@ public class IodineLuwakTagger  implements Tagger {
 	private Monitor monitor = null;
 	private Monitor monitor_symptoms_only = null;
 	private List<MonitorQuery> queries = new ArrayList<>();
-	private List<MonitorQuery> queries_symptoms_only = new ArrayList<>();
+//	private List<MonitorQuery> queries_symptoms_only = new ArrayList<>();
 	
 	private DataSourceType datasourceType=null;
 	
@@ -127,6 +129,7 @@ public class IodineLuwakTagger  implements Tagger {
 	            }
 	            if(!pharma_tags.isEmpty()){
 	            	GenericPost gp = (GenericPost) post.get(docMatches.getDocId());
+	            	Collections.sort(pharma_tags);
 	            	gp.setPharmatags(pharma_tags);
 	            }
 	        } 

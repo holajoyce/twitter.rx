@@ -53,9 +53,7 @@ public class TaggerController {
 	public String processMapBatch(@RequestParam(value = "datasource", required = false) String datasource,
 			@RequestBody String jsonString, @PathVariable String socialMediaType)
 					throws JsonParseException, JsonMappingException, IOException {
-		
 		String taggedResponse="";
-//		logger.info(">>>>> received request for :" + jsonString);
 		DataSourceType ds = DataSourceType.findDSbyShortname(socialMediaType);
 		if ( ds== DataSourceType.RD) {
 			Map<String, Reddit> payload = Maps.newHashMap();
@@ -71,7 +69,6 @@ public class TaggerController {
 			TaggerResponse tr = new TaggerResponse(ds);
 			tr.setTaggerRespTweet(enriched);
 			taggedResponse = tr.toString();
-
 		}
 		logger.info(">>>>> "+taggedResponse);
 		return taggedResponse;
