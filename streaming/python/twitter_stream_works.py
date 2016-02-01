@@ -24,6 +24,7 @@ from pyspark.streaming.kafka import KafkaUtils
 from pyspark.sql import SQLContext, Row
 import json
 import requests
+import unicodedata,re
 
 # https://github.com/apache/spark/blob/master/examples/src/main/python/streaming/sql_network_wordcount.py
 # https://github.com/willzfarmer/TwitterPanic/blob/master/python/analysis.py
@@ -46,6 +47,10 @@ def getSqlContextInstance(sparkContext):
 
 stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
 
+control_chars = ''.join(map(unichr, range(0,32) + range(127,160)))
+
+control_char_re = re.compile('[%s]' % re.escape(control_chars))
+
 
 
 
@@ -67,8 +72,8 @@ def process(time, rdd):
 
 #stream = stream.transform(tfunc)
 
-#lines_texts = stream.map(lambda x:    json.loads(requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text)  )
-parsed = stream.map(lambda (k,v): requests.post(tagger_url,data=  json.loads(json.dumps(json.loads(v)) ).text))
+
+parsed = stream.map(lambda (k,v): json.loads(    control_char_re.sub('', requests.post(tagger_url,data=  json.dumps(json.loads(v) ).text)   )))
 #parsed = stream.map(lambda (k,v): json.loads(v))
 parsed.foreachRDD(process)
 ssc.start()
