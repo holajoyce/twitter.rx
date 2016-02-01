@@ -43,7 +43,7 @@ public class BidsProducer {
 		for(String drug_comp : all_drug_companies){
 			Double bid = (double) (Nums.getRandomNumberInRange(1, 25)/100);
 			pharmaBids.put(drug_comp,bid.toString());
-			LOG.log("pharma_bid", pharmaBids);
+			LOG.log("price", pharmaBids);
 		}
 	}
 	
