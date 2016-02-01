@@ -4,12 +4,15 @@ package com.insightde.types.reddit;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.insightde.types.GenericPost;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
@@ -35,8 +38,9 @@ public class Reddit implements GenericPost{
 	private String id;
 	private String author;
 	private String body;
-	private List<String> phramatags = Lists.newArrayList();
+	private List<String> pharmatags = Lists.newArrayList();
 	private List<String> symptomtags = Lists.newArrayList();
+	private Set<String> conditiontags = Sets.newHashSet();
 	
 	public static Reddit jsonToPojo(String msg) {
 		mapper = new ObjectMapper();
@@ -85,11 +89,36 @@ public class Reddit implements GenericPost{
 
 
 	public List<String> getPharmatags() {
-		return phramatags;
+		if (pharmatags.size()==0) return null;
+		return pharmatags;
 	}
 
-	public void setPharmatags(List<String> pharmatags) {
-		this.phramatags = pharmatags;
+	public void setPharmatags(List<String> tags) {
+		this.pharmatags = tags;
+	}
+	
+	@Override
+	public List<String> getSymptomtags() {
+		if (symptomtags.size()==0) return null;
+		return symptomtags;
+	}
+
+	@Override
+	public void setSymptomtags(List<String> symptomtags) {
+		this.symptomtags = symptomtags;
+		
+	}
+	
+	@Override
+	public Set<String> getConditiontags() {
+		if (conditiontags.size()==0) return null;
+		return conditiontags;
+	}
+
+	@Override
+	public void setConditiontags(Set<String> conditiontags) {
+		this.conditiontags = conditiontags;
+		
 	}
 
 	public String getId() {
@@ -108,14 +137,7 @@ public class Reddit implements GenericPost{
 		this.created_utc = created_utc;
 	}
 
-	public List<String> getSymptomtags() {
-		if (symptomtags.size()==0) return null;
-		return symptomtags;
-	}
 
-	public void setSymptomtags(List<String> symptomtags) {
-		this.symptomtags = symptomtags;
-	}
 	public String getIdAsStr() {
 		return id;
 	}

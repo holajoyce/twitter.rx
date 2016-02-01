@@ -10,12 +10,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.insightde.types.GenericPost;
 import com.insightde.types.TT.response.place.Place;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
@@ -53,6 +56,7 @@ public class Tweet implements GenericPost{
 	private Place place;
 	private List<String> pharmatags = Lists.newArrayList();
 	private List<String> symptomtags = Lists.newArrayList();
+	private Set<String> conditiontags = Sets.newHashSet();
 	private long created_utc = 0L;
 	
 	private String user_screen_name;
@@ -245,13 +249,7 @@ public class Tweet implements GenericPost{
 		this.id_str = id_str;
 	}
 
-	public List<String> getPharmatags() {
-		return pharmatags;
-	}
 
-	public void setPharmatags(List<String> tags) {
-		this.pharmatags = tags;
-	}
 
 	
 	// sometimes coordinates are not correct coming from Twitter
@@ -311,6 +309,15 @@ public class Tweet implements GenericPost{
 		this.created_utc = created_utc;
 	}
 
+	public List<String> getPharmatags() {
+		if (pharmatags.size()==0) return null;
+		return pharmatags;
+	}
+
+	public void setPharmatags(List<String> tags) {
+		this.pharmatags = tags;
+	}
+	
 	@Override
 	public List<String> getSymptomtags() {
 		if (symptomtags.size()==0) return null;
@@ -320,6 +327,18 @@ public class Tweet implements GenericPost{
 	@Override
 	public void setSymptomtags(List<String> symptomtags) {
 		this.symptomtags = symptomtags;
+		
+	}
+	
+	@Override
+	public Set<String> getConditiontags() {
+		if (conditiontags.size()==0) return null;
+		return conditiontags;
+	}
+
+	@Override
+	public void setConditiontags(Set<String> conditiontags) {
+		this.conditiontags = conditiontags;
 		
 	}
 

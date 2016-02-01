@@ -24,6 +24,7 @@ import com.jayway.jsonpath.ReadContext;
 public class IodineJsonParser {
 	
 	private Set<String> 						all_drug_companies 		= Sets.newHashSet();
+//	private Set<String>							all_symptoms			 = Sets.newHashSet();
 	private Map<String,Map<String,Set<String>>> condition_drug_companies= Maps.newHashMap();
 	private Map<String,Set<String>> 			symptoms_conditions 	= Maps.newHashMap();
 	private Map<String,Set<String>> 			symptoms_drug_companies = Maps.newHashMap();
@@ -75,6 +76,7 @@ public class IodineJsonParser {
 			Set<String> symptoms = new HashSet<String>(ctx.read("$.condition.symptoms"));
 			conditions_symptoms.put(condition, symptoms);
 			insertIntoConditionsSymptoms(symptoms, condition);
+//			all_symptoms.addAll(symptoms);
 			
 			List<String> drugs_names = ctx.read("$.drugs[*].name");		
 			for(Integer i=0;i<drugs_names.size();i++){
@@ -140,7 +142,7 @@ public class IodineJsonParser {
 		this.symptoms_drug_companies = symptoms_drug_companies;
 	}
 	
-	public Set<String> getAllSymptoms(){
+	public Set<String> getAll_symptoms(){
 		return symptoms_drug_companies.keySet();
 	}
 
@@ -151,5 +153,13 @@ public class IodineJsonParser {
 	public void setAll_drug_companies(Set<String> all_drug_companies) {
 		this.all_drug_companies = all_drug_companies;
 	}
+
+//	public Set<String> getAll_symptoms() {
+//		return all_symptoms;
+//	}
+
+//	public void setAll_symptoms(Set<String> all_symptoms) {
+//		this.all_symptoms = all_symptoms;
+//	}
 	
 }

@@ -2,11 +2,14 @@ package com.insightde.taggers.services.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.insightde.ApplicationModeType;
 import com.insightde.taggers.dao.Rule;
 import com.insightde.taggers.dao.RuleEntryParser;
 import com.insightde.taggers.services.Tagger;
 import com.insightde.types.GenericPost;
+import com.insightde.types.TT.response.Tweet;
+import com.insightde.types.reddit.Reddit;
 import com.insightde.types.sources.DataSourceType;
 import com.insightde.utils.IodineJsonParser;
 import com.typesafe.config.Config;
@@ -39,6 +42,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.springframework.beans.BeanUtils;
 
 
 public class IodineLuwakTagger  implements Tagger {
@@ -52,8 +56,7 @@ public class IodineLuwakTagger  implements Tagger {
 	private Monitor monitor = null;
 	private Monitor monitor_symptoms_only = null;
 	private List<MonitorQuery> queries = new ArrayList<>();
-//	private List<MonitorQuery> queries_symptoms_only = new ArrayList<>();
-	
+	IodineJsonParser isp;
 	private DataSourceType datasourceType=null;
 	
 	public IodineLuwakTagger(){
@@ -66,8 +69,9 @@ public class IodineLuwakTagger  implements Tagger {
 	public IodineLuwakTagger(
 			ApplicationModeType appMode, String dictionaryDir
 	){
+		isp = new IodineJsonParser(dictionaryDir);
 		initMonitor();
-		registerQueries(dictionaryDir);
+		registerQueries();
 	}
 
 	
@@ -81,26 +85,13 @@ public class IodineLuwakTagger  implements Tagger {
 	}
 	
 	// usually would be the pdmf dictionary
-	public void registerQueries(String dictionaryDir) {
+	public void registerQueries() {
 		
 		// get the iodine.com definitions from downloaded dictionary files
-		IodineJsonParser isp = new IodineJsonParser(dictionaryDir); 
-
-		Map<String, Set<String>>conditions_symptoms = isp.getConditions_symptoms();
-		Map<String, Map<String,Set<String>>> conditions_drug_comps = isp.getCondition_drug_companies();
-		
-		for (Entry<String, Set<String>> entry : conditions_symptoms.entrySet() ) {
-			for (String symptom:entry.getValue()){
-				String condition = entry.getKey(); 
-				Map<String,Set<String>> drug_drugcomp = conditions_drug_comps.get(condition);
-				for(String drug_tree:drug_drugcomp.keySet()){
-					for (String drug_comp : drug_drugcomp.get(drug_tree)){
-						queries.add(new MonitorQuery(drug_comp,symptom));
-					}
-				}
-			}
+		for(String symptom: isp.getAll_symptoms()){
+			queries.add(new MonitorQuery(symptom,symptom));
 		}
-		
+
 		logger.info("Finished registering queries");
 		try {
 			monitor.update(queries);
@@ -109,7 +100,6 @@ public class IodineLuwakTagger  implements Tagger {
 			logger.error(e.getMessage());
 		}
 	} // registerQueries
-
 	
 	public <T> Map<String, T> enrichPost(Map<String, T> post)  {
 		if (post.isEmpty()) 
@@ -123,14 +113,33 @@ public class IodineLuwakTagger  implements Tagger {
 		try{
 			Matches<HighlightsMatch> matches  = monitor.match(batch, HighlightingMatcher.FACTORY);
 			for (DocumentMatches<HighlightsMatch> docMatches : matches) {
-	            List<String>pharma_tags = Lists.newArrayList();
+	            Set<String>pharmaTagsSet =  Sets.newHashSet();
+	            Set<String>conditionTagsSet = Sets.newHashSet();
+	            List<String>symptomTags = Lists.newArrayList();
+	            List<String>pharmaTagsList = Lists.newArrayList();
+	            
 	            for (HighlightsMatch match : docMatches) {
-	            	pharma_tags.add(match.getQueryId());
+	            	String symptom = match.getQueryId();
+	            	symptomTags.add(symptom);
+	            	conditionTagsSet.addAll(isp.getSymptoms_conditions().get(symptom));
+	            	pharmaTagsSet.addAll(isp.getSymptoms_drug_companies().get(symptom));
 	            }
-	            if(!pharma_tags.isEmpty()){
-	            	GenericPost gp = (GenericPost) post.get(docMatches.getDocId());
-	            	Collections.sort(pharma_tags);
-	            	gp.setPharmatags(pharma_tags);
+	            if(!pharmaTagsSet.isEmpty()){
+	            	for(String key: post.keySet()){
+	            		GenericPost gp = (GenericPost) post.get(key);
+	            		
+	            		// add pharma tags
+	            		pharmaTagsList.addAll(pharmaTagsSet);
+	            		Collections.sort(pharmaTagsList);
+	            		gp.setPharmatags(pharmaTagsList);
+	            		
+	            		// add condition tags
+	            		gp.setConditiontags(conditionTagsSet);
+	            		
+	            		// add symptoms tags
+	            		gp.setSymptomtags(symptomTags);
+	            	}
+	            	
 	            }
 	        } 
 		}catch(IOException e){
@@ -169,7 +178,4 @@ public class IodineLuwakTagger  implements Tagger {
 		this.datasourceType = datasourceType;
 	}
 	
-	
-	
-	// match batch of docs
 }
