@@ -115,11 +115,17 @@ def printRdd(x):
 def enrich(x):
   return requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()
 
+def tfunc(rdd):
+  return rdd.map(  enrich  )
 
+
+
+# these two ways are the same
+lines = stream.transform(tfunc )
+#lines = stream.transform(lambda rdd: rdd.map(  lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()  ) )
 # lines = stream.map(lambda x: json.loads(x[1]))
 
-lines = stream.transform(lambda rdd: rdd.map(  enrich  ) )
-#lines = stream.transform(lambda rdd: rdd.map(  lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()  ) )
+
 lines.foreachRDD(printRdd)
 
 # lines = stream.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1]))).json() )
