@@ -1,5 +1,5 @@
 # http://zdatainc.com/2014/08/real-time-streaming-apache-spark-streaming/
-# HI!
+# HI!!
 """
  Counts words in UTF8 encoded, '\n' delimited text received from the network every second.
  Usage: kafka_wordcount.py <zk> <topic>
@@ -96,7 +96,7 @@ def process(time, rdd):
 
 
 def convert(rdd):
-  rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+  rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
   df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
   df.registerTempTable("df")
   new_df = df.select(df.author,df.body, explode(df.name).alias('name'))
@@ -128,21 +128,35 @@ def printRdd(rdd):
   # df.show()
 
 def tfunc(t,rdd,rddb):
+  sqlCtx = SQLContext(sc)
   # texts
-  rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
-  df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-  df.registerTempTable("df")
-  new_df = df.select(df.author,df.body, explode(df.pharmatags).alias('pharmatag'))
-  # bids
-  rowRdd2= rddb.map(lambda w: Row(price=w['price'], pharmatag=w['pharmatags']))
-  df2 = getSqlContextInstance(rddb.context).createDataFrame(rowRdd2) 
-  df2.registerTempTable("df2")
-  new_df2 = df2.select(df2.price,df2.pharmatag)
-  
-  new_df3 = new_df.join(new_df2,new_df.pharmatag==new_df2.pharmatag)
-  new_df3.show()
-  newRDD3 = new_df3.toJSON()
-  return newRDD3
+  try:
+    #----- texts
+    rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+    texts = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+    texts.registerTempTable("texts")
+    texts = texts.select(texts.id,texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'))
+
+    #----- bids
+    rowRdd2= rddb.map(lambda w: Row(price=w['price'], pharmatag=w['pharmatags']))
+    bids = getSqlContextInstance(rddb.context).createDataFrame(rowRdd2) 
+    bids.registerTempTable("bids")
+    bids = bids.select(bids.price,bids.pharmatag)
+    
+    #---- texts joined with bids
+    textsbids = texts.join(bids,texts.pharmatag==bids.pharmatag)
+    #textsbids.show()
+    #textsbidsJsonRDD = textsbids.toJSON()
+    # return textsbidsJsonRDD
+
+    #-----texts_bids, find min
+    #textsbidsmin = new_df3.groupBy("id","created_utc","body","author","pharmatag").max("price")
+    textsbidsmin = textsbids.groupBy("id").agg(func.max("price"))
+    textsbidsmin.show()
+    textsbidsminJsonRDD = textsbidsmin.toJSON()
+    return textsbidsminJsonRDD
+  except 'Exception':
+    pass
 
 
 #------------
