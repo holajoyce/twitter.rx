@@ -25,7 +25,7 @@ from pyspark.sql import SQLContext, Row
 import json
 import requests
 from time import gmtime, strftime
-import unicodedata
+import unicodedata,re
 
 # line="""{"subreddit_id":"t5_2yljs","score":0,"edited":false,"name":"t1_cekta7f","author_flair_css_class":"default","author":"Kimera25","parent_id":"t1_ceks74z","link_id":"t3_1uqrin","retrieved_on":1431859483,"score_hidden":false,"author_flair_text":"360 100%","subreddit":"chiliadmystery","downs":0,"removal_reason":null,"controversiality":0,"id":"cekta7f","ups":0,"gilded":0,"distinguished":null,"body":"I just tried it and nothing, it's a half moon on a tuesday, no rain, i'll try it with a thunderstorm next time. this got me thinking that the mural could have been painted by the Altruists and each of the X's represents a sacrifice and you have to do the fifth one, I guess on chop. random theory built off all this.","archived":true}"""
 # https://github.com/apache/spark/blob/master/examples/src/main/python/streaming/sql_network_wordcount.py
@@ -68,6 +68,10 @@ tagger_url = "http://localhost:8555/tagbatch/"+datasourcetype
 lines_count =0;
 LINES_COUNT_MAX=100;
 
+control_chars = ''.join(map(unichr, range(0,32) + range(127,160)))
+control_char_re = re.compile('[%s]' % re.escape(control_chars))
+
+
 
 
 def process(time, rdd):
@@ -92,6 +96,7 @@ def printRdd(rdd):
   rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
   df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
   df.registerTempTable("df")
+  #new_df = df.select(df.author,df.body, explode(df.pharmatags).alias('pharmatag')).show
   df.show()
   #rowRdd = rdd.map(lambda w: Row(w))
   #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
@@ -112,7 +117,7 @@ def enrich(x):
 #------------
 
 # these two ways are the same
-lines_texts = stream.map(lambda x:    json.loads(requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text)  )
+lines_texts = stream.map(lambda x:    json.loads(   control_char_re.sub('',requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text) )  )
 #lines_texts = stream.transform(lambda rdd:rdd.map(  enrich  ) ) #WORKS!
 #lines_bids = stream2.map(lambda x: json.loads(x[0])) #works
 #lines_texts_with_bids = lines_texts.union(lines_bids) #works
