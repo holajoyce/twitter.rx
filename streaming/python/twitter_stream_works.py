@@ -46,7 +46,7 @@ def getSqlContextInstance(sparkContext):
 
 
 stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
-
+stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {"pharma_bids": 1})
 control_chars = ''.join(map(unichr, range(0,32) + range(127,160)))
 
 control_char_re = re.compile('[%s]' % re.escape(control_chars))
@@ -60,21 +60,25 @@ def parse_json(v):
 def process(time, rdd):
   print("========= %s =========" % str(time))
   try:
-    rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc']))
+    rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
     df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     df.registerTempTable("df")
-    df_jsons = df.toJSON()
-    first = df_jsons.first()
-    print(first)
+    new_df = df.select(df.author,df.body, explode(df.pharmatags).alias('pharmatag')).show
+    #df_jsons = new_df.toJSON()
+    #first = df_jsons.first()
+    #print(first)
     #df_json.show()
   except:
     pass
 
-#stream = stream.transform(tfunc)
+#def process()
+
+#lines_bids = stream2.map(lambda (k,v): json.loads(v)) #works
 
 
 parsed = stream.map(lambda (k,v): json.loads(    control_char_re.sub('', requests.post(tagger_url,data=  json.dumps(json.loads(v) ).text)   )))
-#parsed = stream.map(lambda (k,v): json.loads(v))
+#placed_bids = parsed.join()
+
 parsed.foreachRDD(process)
 ssc.start()
 ssc.awaitTermination()
