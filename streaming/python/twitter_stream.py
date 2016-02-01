@@ -28,6 +28,8 @@ import json
 import requests
 from time import gmtime, strftime
 import unicodedata,re
+import pyspark_cassandra
+
 
 # line="""{"subreddit_id":"t5_2yljs","score":0,"edited":false,"name":"t1_cekta7f","author_flair_css_class":"default","author":"Kimera25","parent_id":"t1_ceks74z","link_id":"t3_1uqrin","retrieved_on":1431859483,"score_hidden":false,"author_flair_text":"360 100%","subreddit":"chiliadmystery","downs":0,"removal_reason":null,"controversiality":0,"id":"cekta7f","ups":0,"gilded":0,"distinguished":null,"body":"I just tried it and nothing, it's a half moon on a tuesday, no rain, i'll try it with a thunderstorm next time. this got me thinking that the mural could have been painted by the Altruists and each of the X's represents a sacrifice and you have to do the fifth one, I guess on chop. random theory built off all this.","archived":true}"""
 # https://github.com/apache/spark/blob/master/examples/src/main/python/streaming/sql_network_wordcount.py
@@ -58,17 +60,20 @@ import unicodedata,re
 
 # cassandra
 # https://github.com/datastax/spark-cassandra-connector/blob/master/doc/15_python.md
+# https://github.com/TargetHolding/pyspark-cassandra # even easier!
 
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
   return globals()['sqlContextSingletonInstance']
 
+# conf = SparkConf() \
+#   .setAppName("PySpark Cassandra Text Bids Join") \
+#   .set("spark.cassandra.connection.host", "cas-1")
 
+# sc = CassandraSparkContext(conf=conf)
 sc = SparkContext(appName="stream_tagger")
 ssc = StreamingContext(sc, 1)
-
-
 
 zkQuorum, topic = sys.argv[1:]
 #brokers, topic = sys.argv[1:]
@@ -89,23 +94,19 @@ control_char_re = re.compile('[%s]' % re.escape(control_chars))
 
 def process(rdd):
   print(">>>> END")
+  # send to td-agent, to send to elasticsearch
   print(rdd.take(10))
   print(">>>> END")
-  # rdd.show()
-  # rowRdd = rdd.map(lambda w: Row(author=w['author'], body=w['body'], created_utc=w['created_utc'], name=w['name']))
-  # df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-  # df.registerTempTable("df")
-  # df.show()
 
 def tfunc(t,rdd,rddb):
   # texts
   try:
     #----- texts
 
-    rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+    rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags'], conditiontags=w['conditiontags'], symptomtags=w['symptomtags']))
     texts = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     texts.registerTempTable("texts")
-    texts = texts.select(texts.id,texts.created_utc,texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'))
+    texts = texts.select(texts.id,texts.created_utc,texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'), texts.conditiontags, texts.symptomtags)
 
     #----- bids
     rowRdd2= rddb.map(lambda w: Row(price=w['price'], pharmatag=w['pharmatags']))
@@ -114,22 +115,14 @@ def tfunc(t,rdd,rddb):
     bids = bids.select(bids.price,bids.pharmatag)
     
     #---- texts ids joined with pharma bids
-    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, bids.pharmatag,bids.price)
+    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, texts.conditiontags, texts.symptomtags, bids.pharmatag,bids.price)
     idbids.registerTempTable("idbids")
 
     #-----texts id & bids, find min
-    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, pharmatag")
+    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, conditiontags, symptomtags, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, conditiontags, symptomtags, pharmatag ")
     idsbidsmin.registerTempTable("idsbidsmin") # dataframe
-    # idsbidsmin.write.format("org.apache.spark.sql.cassandra")
-    # see the spark-cassandra-connector githubpage datastax
-    #idsbidsmin.show()
-    # idsbidsminJsonRDD = idsbidsmin.toJSON()
 
-    # idsbidsmin.map(lambda rdd: rdd )
-    # idsbidsminJsonRDD.first()
-    #yield(next(idsbidsmin.rdd)) #.first()
     return idsbidsmin.rdd
-    # return idsbidsmin.rdd
 
   except 'Exception':
     pass
