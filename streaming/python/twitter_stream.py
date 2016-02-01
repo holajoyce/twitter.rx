@@ -1,5 +1,5 @@
 # http://zdatainc.com/2014/08/real-time-streaming-apache-spark-streaming/
-# HI!
+# HI!!
 """
  Counts words in UTF8 encoded, '\n' delimited text received from the network every second.
  Usage: kafka_wordcount.py <zk> <topic>
@@ -22,6 +22,8 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
 from pyspark.sql import SQLContext, Row
+from pyspark.sql.functions import explode
+# from pyspark.sql.DataFrame import alias
 import json
 import requests
 from time import gmtime, strftime
@@ -45,6 +47,15 @@ import unicodedata,re
 # multiple d-streams (tDas response)
 # http://apache-spark-user-list.1001560.n3.nabble.com/using-multiple-dstreams-together-spark-streaming-td9947.html
 
+# tabular data
+# https://www.mapr.com/blog/using-apache-spark-dataframes-processing-tabular-data
+
+# joining dataframes (see section, a more concrete example)
+# https://spark.apache.org/docs/1.5.2/api/python/pyspark.sql.html
+
+# how not to duplicate columns
+# https://forums.databricks.com/questions/876/is-there-a-better-method-to-join-two-dataframes-an.html
+
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
@@ -60,7 +71,7 @@ zkQuorum, topic = sys.argv[1:]
 #brokers, topic = sys.argv[1:]
 #stream = KafkaUtils.createDirectStream(ssc, [topic], {"metadata.broker.list": brokers})
 stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
-#stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids": 1})
+stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids_prices2": 1})
 
 datasourcetype = "TT" if topic=="TT_raw" else "RD"
 tagger_url = "http://localhost:8555/tagbatch/"+datasourcetype
@@ -92,12 +103,14 @@ def process(time, rdd):
 
 
 
-def printRdd(rdd):
-  rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+
+def convert(rdd):
+  rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
   df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
   df.registerTempTable("df")
-  # new_df = df.select(df.author,df.body, explode(df.pharmatags).alias('pharmatag')).show
-  df.show()
+  new_df = df.select(df.author,df.body, explode(df.name).alias('name'))
+  new_rdd =  new_df.toRdd
+  # new_df.show()
   #rowRdd = rdd.map(lambda w: Row(w))
   #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
   #df = sqlContext.createDataFrame(rowRdd)
@@ -114,20 +127,71 @@ def enrich(x):
 # text lines bundle
 
 
+
+
+def printRdd(rdd):
+  print(rdd.take(1))
+  # rowRdd = rdd.map(lambda w: Row(author=w['author'], body=w['body'], created_utc=w['created_utc'], name=w['name']))
+  # df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+  # df.registerTempTable("df")
+  # df.show()
+
+def tfunc(t,rdd,rddb):
+  # texts
+  try:
+    #----- texts
+    rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+    texts = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+    texts.registerTempTable("texts")
+    texts = texts.select(texts.id,texts.created_utc,texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'))
+
+    #----- bids
+    rowRdd2= rddb.map(lambda w: Row(price=w['price'], pharmatag=w['pharmatags']))
+    bids = getSqlContextInstance(rddb.context).createDataFrame(rowRdd2) 
+    bids.registerTempTable("bids")
+    bids = bids.select(bids.price,bids.pharmatag)
+    
+    #---- texts ids joined with pharma bids
+    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, bids.pharmatag,bids.price)
+    idbids.registerAsTable("idbids")
+
+    #-----texts id & bids, find min
+    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, pharmatag")
+    idsbidsmin.registerAsTable("idsbidsmin")
+    idsbidsmin.show()
+    idsbidsminJsonRDD = idsbidsmin.toJSON()
+    return idsbidsminJsonRDD
+
+    #----- join it back to full dataframe
+    # textsbids = texts.join(idsbidsmin,texts.id==idsbidsmin.id,'inner').select(texts.id,texts.author,texts.body, texts.created_utc, idsbidsmin.pharmatag,idsbidsmin.price)
+    # textsbids.registerAsTable("textsbids")
+    # textsbids.show()
+    # textsbidsJsonRDD = textsbids.toJSON()
+    # return textsbidsJsonRDD
+
+  except 'Exception':
+    pass
+
+
 #------------
 
 # these two ways are the same
 lines_texts = stream.map(lambda x:    json.loads(   control_char_re.sub('',requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text ))  )
+#lines_texts = lines_texts.transform(lambda rdd:rdd.map(lambda x: convert))
 #lines_texts = stream.transform(lambda rdd:rdd.map(  enrich  ) ) #WORKS!
-#lines_bids = stream2.map(lambda x: json.loads(x[0])) #works
+lines_bids = stream2.map(lambda x: json.loads(x[1])   ) #works
 #lines_texts_with_bids = lines_texts.union(lines_bids) #works
 
-#lines_texts_with_bids = lines_texts.join(lines2)
+# lines_bids.foreachRDD(printRddBids)
+
+lines_texts_with_bids = lines_texts.transformWith(tfunc, lines_bids)
+#lines_texts.foreachRDD(printRdd)
+
 # lines_texts.foreachRDD(process)
-lines_texts.foreachRDD(printRdd) # WORKS
+lines_texts_with_bids.foreachRDD(printRdd) # WORKS
+#lines_texts.transformWith(printRdd,lines_bids)
 
 
-#lines3.foreachRDD(printRdd)
 
 ssc.start()
 ssc.awaitTermination()
