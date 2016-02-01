@@ -48,8 +48,8 @@ public class BidsProducer {
 		Map<String,Object> data = new HashMap<String, Object>();
 		
 		List<Object> bidbatch = Lists.newArrayList();
-		Map<String, Object> bidItem = new HashMap<String, Object>();
 		for(String drug_comp : all_drug_companies){
+			Map<String, Object> bidItem = new HashMap<String, Object>();
 			bidItem.put("name", drug_comp);
 			bidItem.put("price", Nums.round(Nums.getRandomNumberInRange(1, 15)/100.00,2));
 			bidbatch.add(bidItem);
