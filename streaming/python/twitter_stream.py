@@ -54,12 +54,13 @@ def getSqlContextInstance(sparkContext):
 sc = SparkContext(appName="stream_tagger")
 ssc = StreamingContext(sc, 1)
 
-#ssc2 = StreamingContext(sc, 1)
 
 
 zkQuorum, topic = sys.argv[1:]
-#stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
-stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids": 1})
+#brokers, topic = sys.argv[1:]
+#stream = KafkaUtils.createDirectStream(ssc, [topic], {"metadata.broker.list": brokers})
+stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
+#stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids": 1})
 
 datasourcetype = "TT" if topic=="TT_raw" else "RD"
 tagger_url = "http://localhost:8555/tagbatch/"+datasourcetype
@@ -72,44 +73,56 @@ LINES_COUNT_MAX=100;
 def process(time, rdd):
   print("========= process method starting %s =========" % str(time))
   try:
-    # change the rdd to a tagged one
-    #rdd = requests.post(tagger_url,data=json.dumps(rdd)).json()
-    rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['text'], created_at_utc=w['timestamp_ms'][0:9]))
-    df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-    df.registerTempTable("df")
-    df_jsons = df.toJSON()
-    first = df_jsons.first()
-    print(first)
-    #df_json.show()
+    print(json.dumps(x.take(2)))
+    #rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+    #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+    #df.registerTempTable("df")
+    #exp = df.select(df.author,df.body,df.created_utc, explode(df.pharmatags).alias("pharmtag"))
+    #df_jsons = df.toJSON()
+    #print(json.dumps(df_jsons.take(2)))
+   
   except:
     pass
+    print("!!!!!!!!! error!")
   print("========= process method ends %s =========" % str(time))
 
 
 
-def printRdd(x):
-  print(json.dumps(x.take(2)))
-  print(x)
+def printRdd(rdd):
+  rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+  df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+  df.registerTempTable("df")
+  df.show()
+  #rowRdd = rdd.map(lambda w: Row(w))
+  #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+  #df = sqlContext.createDataFrame(rowRdd)
+  #df.registerTempTable("df")
+  #df.show()
+  # item = rdd.take(1)
+  # if len(item)>0:
+  #   print(rdd.take(1)[0]['body'])
+  #print(rdd.take(1)[0])
 
 def enrich(x):
   return requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()
 
-def tfunc(rdd):
-  return rdd.map(  enrich  )
+# text lines bundle
 
 
 #------------
 
 # these two ways are the same
-#lines = stream.transform(tfunc ) #WORKS!
-#lines = stream.transform(lambda rdd: rdd.map(  lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()  ) )
-# lines = stream.map(lambda x: json.loads(x[1]))
-#lines.foreachRDD(printRdd) # WORKS
+lines_texts = stream.map(lambda x:    json.loads(requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text)  )
+#lines_texts = stream.transform(lambda rdd:rdd.map(  enrich  ) ) #WORKS!
+#lines_bids = stream2.map(lambda x: json.loads(x[0])) #works
+#lines_texts_with_bids = lines_texts.union(lines_bids) #works
 
-lines2 = stream2.map(lambda x: json.loads(x[1]))
-lines2.foreachRDD(printRdd)
+#lines_texts_with_bids = lines_texts.join(lines2)
+# lines_texts.foreachRDD(process)
+lines_texts.foreachRDD(printRdd) # WORKS
 
 
+#lines3.foreachRDD(printRdd)
 
 ssc.start()
 ssc.awaitTermination()
