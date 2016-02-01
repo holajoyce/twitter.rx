@@ -1,6 +1,7 @@
 package com.insightde.service.producer;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +16,9 @@ import com.insightde.utils.IodineJsonParser;
 import com.insightde.utils.Nums;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+
+import sun.rmi.runtime.Log;
+
 import org.fluentd.logger.FluentLogger;
 
 
@@ -38,15 +42,14 @@ public class BidsProducer {
 	
 	// simulate bidding by pharma comps
 	// run this every 30 s
-	@Scheduled(fixedRate=5000)
+	@Scheduled(fixedRate=1000)
 	public void produceBidsSimulation(){
+		Map<String, Object> data = new HashMap<String, Object>();
 		for(String drug_comp : all_drug_companies){
-			Double bid =   Nums.round(Nums.getRandomNumberInRange(1, 25)/100.00,2);
-			pharmaBids.put(drug_comp,bid.toString());
-			LOG.log("price", pharmaBids);
+			data.put("name", drug_comp);
+			data.put("price", Nums.round(Nums.getRandomNumberInRange(1, 15)/100.00,2));
+			LOG.log("batch", data);
 		}
 	}
-	
-	
 	
 }
