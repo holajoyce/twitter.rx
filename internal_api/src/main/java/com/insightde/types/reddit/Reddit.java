@@ -89,7 +89,7 @@ public class Reddit implements GenericPost{
 
 
 	public List<String> getPharmatags() {
-		if (pharmatags.size()==0) return null;
+//		if (pharmatags.size()==0) return null;
 		return pharmatags;
 	}
 
@@ -99,7 +99,7 @@ public class Reddit implements GenericPost{
 	
 	@Override
 	public List<String> getSymptomtags() {
-		if (symptomtags.size()==0) return null;
+//		if (symptomtags.size()==0) return null;
 		return symptomtags;
 	}
 
@@ -111,7 +111,7 @@ public class Reddit implements GenericPost{
 	
 	@Override
 	public Set<String> getConditiontags() {
-		if (conditiontags.size()==0) return null;
+//		if (conditiontags.size()==0) return null;
 		return conditiontags;
 	}
 

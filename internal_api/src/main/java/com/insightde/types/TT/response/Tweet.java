@@ -310,7 +310,7 @@ public class Tweet implements GenericPost{
 	}
 
 	public List<String> getPharmatags() {
-		if (pharmatags.size()==0) return null;
+//		if (pharmatags.size()==0) return null;
 		return pharmatags;
 	}
 
@@ -320,7 +320,7 @@ public class Tweet implements GenericPost{
 	
 	@Override
 	public List<String> getSymptomtags() {
-		if (symptomtags.size()==0) return null;
+//		if (symptomtags.size()==0) return null;
 		return symptomtags;
 	}
 
@@ -332,7 +332,7 @@ public class Tweet implements GenericPost{
 	
 	@Override
 	public Set<String> getConditiontags() {
-		if (conditiontags.size()==0) return null;
+//		if (conditiontags.size()==0) return null;
 		return conditiontags;
 	}
 
