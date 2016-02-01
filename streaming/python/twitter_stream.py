@@ -28,6 +28,8 @@ import json
 import requests
 from time import gmtime, strftime
 import unicodedata,re
+import pyspark_cassandra
+
 
 # line="""{"subreddit_id":"t5_2yljs","score":0,"edited":false,"name":"t1_cekta7f","author_flair_css_class":"default","author":"Kimera25","parent_id":"t1_ceks74z","link_id":"t3_1uqrin","retrieved_on":1431859483,"score_hidden":false,"author_flair_text":"360 100%","subreddit":"chiliadmystery","downs":0,"removal_reason":null,"controversiality":0,"id":"cekta7f","ups":0,"gilded":0,"distinguished":null,"body":"I just tried it and nothing, it's a half moon on a tuesday, no rain, i'll try it with a thunderstorm next time. this got me thinking that the mural could have been painted by the Altruists and each of the X's represents a sacrifice and you have to do the fifth one, I guess on chop. random theory built off all this.","archived":true}"""
 # https://github.com/apache/spark/blob/master/examples/src/main/python/streaming/sql_network_wordcount.py
@@ -56,16 +58,22 @@ import unicodedata,re
 # how not to duplicate columns
 # https://forums.databricks.com/questions/876/is-there-a-better-method-to-join-two-dataframes-an.html
 
+# cassandra
+# https://github.com/datastax/spark-cassandra-connector/blob/master/doc/15_python.md
+# https://github.com/TargetHolding/pyspark-cassandra # even easier!
+
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
   return globals()['sqlContextSingletonInstance']
 
+# conf = SparkConf() \
+#   .setAppName("PySpark Cassandra Text Bids Join") \
+#   .set("spark.cassandra.connection.host", "cas-1")
 
+# sc = CassandraSparkContext(conf=conf)
 sc = SparkContext(appName="stream_tagger")
 ssc = StreamingContext(sc, 1)
-
-
 
 zkQuorum, topic = sys.argv[1:]
 #brokers, topic = sys.argv[1:]
@@ -84,66 +92,21 @@ control_char_re = re.compile('[%s]' % re.escape(control_chars))
 
 
 
-
-def process(time, rdd):
-  print("========= process method starting %s =========" % str(time))
-  try:
-    print(json.dumps(x.take(2)))
-    #rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
-    #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-    #df.registerTempTable("df")
-    #exp = df.select(df.author,df.body,df.created_utc, explode(df.pharmatags).alias("pharmtag"))
-    #df_jsons = df.toJSON()
-    #print(json.dumps(df_jsons.take(2)))
-   
-  except:
-    pass
-    print("!!!!!!!!! error!")
-  print("========= process method ends %s =========" % str(time))
-
-
-
-
-def convert(rdd):
-  rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
-  df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-  df.registerTempTable("df")
-  new_df = df.select(df.author,df.body, explode(df.name).alias('name'))
-  new_rdd =  new_df.toRdd
-  # new_df.show()
-  #rowRdd = rdd.map(lambda w: Row(w))
-  #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-  #df = sqlContext.createDataFrame(rowRdd)
-  #df.registerTempTable("df")
-  #df.show()
-  # item = rdd.take(1)
-  # if len(item)>0:
-  #   print(rdd.take(1)[0]['body'])
-  #print(rdd.take(1)[0])
-
-def enrich(x):
-  return requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()
-
-# text lines bundle
-
-
-
-
-def printRdd(rdd):
-  print(rdd.take(1))
-  # rowRdd = rdd.map(lambda w: Row(author=w['author'], body=w['body'], created_utc=w['created_utc'], name=w['name']))
-  # df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-  # df.registerTempTable("df")
-  # df.show()
+def process(rdd):
+  print(">>>> END")
+  # send to td-agent, to send to elasticsearch
+  print(rdd.take(10))
+  print(">>>> END")
 
 def tfunc(t,rdd,rddb):
   # texts
   try:
     #----- texts
-    rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+
+    rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags'], conditiontags=w['conditiontags'], symptomtags=w['symptomtags']))
     texts = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     texts.registerTempTable("texts")
-    texts = texts.select(texts.id,texts.created_utc,texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'))
+    texts = texts.select(texts.id,texts.created_utc,texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'), texts.conditiontags, texts.symptomtags)
 
     #----- bids
     rowRdd2= rddb.map(lambda w: Row(price=w['price'], pharmatag=w['pharmatags']))
@@ -152,46 +115,27 @@ def tfunc(t,rdd,rddb):
     bids = bids.select(bids.price,bids.pharmatag)
     
     #---- texts ids joined with pharma bids
-    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, bids.pharmatag,bids.price)
-    idbids.registerAsTable("idbids")
+    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, texts.conditiontags, texts.symptomtags, bids.pharmatag,bids.price)
+    idbids.registerTempTable("idbids")
 
     #-----texts id & bids, find min
-    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, pharmatag")
-    idsbidsmin.registerAsTable("idsbidsmin")
-    idsbidsmin.show()
-    idsbidsminJsonRDD = idsbidsmin.toJSON()
-    return idsbidsminJsonRDD
+    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, conditiontags, symptomtags, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, conditiontags, symptomtags, pharmatag ")
+    idsbidsmin.registerTempTable("idsbidsmin") # dataframe
 
-    #----- join it back to full dataframe
-    # textsbids = texts.join(idsbidsmin,texts.id==idsbidsmin.id,'inner').select(texts.id,texts.author,texts.body, texts.created_utc, idsbidsmin.pharmatag,idsbidsmin.price)
-    # textsbids.registerAsTable("textsbids")
-    # textsbids.show()
-    # textsbidsJsonRDD = textsbids.toJSON()
-    # return textsbidsJsonRDD
+    return idsbidsmin.rdd
 
   except 'Exception':
     pass
-
-
 #------------
+# 2 different streams 1 tweets, the other bids from pharmaceutical companies
+lines_texts = stream.map(lambda x:    requests.post(tagger_url,data=json.dumps(json.loads( control_char_re.sub('',x[1]))) ).json() )  
+lines_bids = stream2.map(lambda x: json.loads(x[1])   ) 
 
-# these two ways are the same
-lines_texts = stream.map(lambda x:    json.loads(   control_char_re.sub('',requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text ))  )
-#lines_texts = lines_texts.transform(lambda rdd:rdd.map(lambda x: convert))
-#lines_texts = stream.transform(lambda rdd:rdd.map(  enrich  ) ) #WORKS!
-lines_bids = stream2.map(lambda x: json.loads(x[1])   ) #works
-#lines_texts_with_bids = lines_texts.union(lines_bids) #works
-
-# lines_bids.foreachRDD(printRddBids)
-
+# join the streams together
 lines_texts_with_bids = lines_texts.transformWith(tfunc, lines_bids)
-#lines_texts.foreachRDD(printRdd)
 
-# lines_texts.foreachRDD(process)
-lines_texts_with_bids.foreachRDD(printRdd) # WORKS
-#lines_texts.transformWith(printRdd,lines_bids)
-
-
+# get back a new type of rdd & process
+lines_texts_with_bids.foreachRDD(process) 
 
 ssc.start()
 ssc.awaitTermination()
