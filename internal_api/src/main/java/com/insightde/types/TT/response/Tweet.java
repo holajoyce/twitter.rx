@@ -55,7 +55,7 @@ public class Tweet implements GenericPost{
 	private List<String> symptomtags = Lists.newArrayList();
 	private long created_utc = 0L;
 	
-	private String author;
+	private String user_screen_name;
 	
 	
 //	public Tweet(String id, String text){
@@ -323,12 +323,12 @@ public class Tweet implements GenericPost{
 		
 	}
 
-	public String getAuthor() {
-		return author;
+	public String getUser_screen_name() {
+		return user_screen_name;
 	}
 
 	public void setUser_screen_name(String user_screen_name) {
-		this.author = user_screen_name;
+		this.user_screen_name = user_screen_name;
 	}
 
 }
