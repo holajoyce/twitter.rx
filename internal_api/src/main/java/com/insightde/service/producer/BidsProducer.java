@@ -38,7 +38,7 @@ public class BidsProducer {
 	
 	// simulate bidding by pharma comps
 	// run this every 30 s
-	@Scheduled(fixedRate=30000)
+	@Scheduled(fixedRate=5000)
 	public void produceBidsSimulation(){
 		for(String drug_comp : all_drug_companies){
 			Double bid =   Nums.round(Nums.getRandomNumberInRange(1, 25)/100.00,2);
