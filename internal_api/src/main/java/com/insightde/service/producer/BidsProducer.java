@@ -41,15 +41,20 @@ public class BidsProducer {
 	
 	
 	// simulate bidding by pharma comps
-	// run this every 30 s
-	@Scheduled(fixedRate=1000)
+	// run this every 3 s
+	@Scheduled(fixedRate=3000)
 	public void produceBidsSimulation(){
-		Map<String, Object> data = new HashMap<String, Object>();
+		
+		Map<String,Object> data = new HashMap<String, Object>();
+		
+		Map<String, Object> bidBatch = new HashMap<String, Object>();
 		for(String drug_comp : all_drug_companies){
-			data.put("name", drug_comp);
-			data.put("price", Nums.round(Nums.getRandomNumberInRange(1, 15)/100.00,2));
-			LOG.log("batch", data);
+			bidBatch.put("name", drug_comp);
+			bidBatch.put("price", Nums.round(Nums.getRandomNumberInRange(1, 15)/100.00,2));
 		}
+		data.put("batch", bidBatch);
+		LOG.log("prices",data);
+		
 	}
 	
 }
