@@ -68,7 +68,7 @@ def process(time, rdd):
 #stream = stream.transform(tfunc)
 
 #lines_texts = stream.map(lambda x:    json.loads(requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text)  )
-parsed = stream.map(lambda (k,v): requests.post(tagger_url,data=json.dumps(json.loads(v)) ).json())
+parsed = stream.map(lambda (k,v): requests.post(tagger_url,data=  json.loads(json.dumps(json.loads(v)) ).text))
 #parsed = stream.map(lambda (k,v): json.loads(v))
 parsed.foreachRDD(process)
 ssc.start()
