@@ -163,7 +163,7 @@ def tfunc(t,rdd,rddb):
     # return idsbidsminJsonRDD
 
     #----- join it back to full dataframe
-    textsbids = texts.join(idsbidsmin,texts.pharmatag=idsbidsmin.pharmatag,'inner').select(texts.id,texts.author, texts.body, texts.created_utc, idsbidsmin.pharmatag, idsbidsmin.price)
+    textsbids = texts.join(idsbidsmin,texts.id==idsbidsmin.id,'inner').select(texts.id,texts.author,texts.body, texts.created_utc, idsbidsmin.pharmatag,idsbidsmin.price)
     textsbids.registerAsTable("textsbids")
     textsbids.show()
     textsbidsJsonRDD = textsbids.toJSON()
