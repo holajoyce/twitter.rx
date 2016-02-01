@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import com.insightde.types.GenericPost;
 import com.insightde.types.TT.response.place.Place;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -46,13 +47,15 @@ public class Tweet implements GenericPost{
 	private int retweet_count;
 	private boolean favorited;
 	private boolean retweeted;
-	private TwitterEntity entities;
-	private TwitterUser user;
+//	private TwitterEntity entities;
+//	private TwitterUser user;
 	private Language lang;
 	private Place place;
 	private List<String> pharmatags = Lists.newArrayList();
 	private List<String> symptomtags = Lists.newArrayList();
 	private long created_utc = 0L;
+	
+	private String user_screen_name;
 	
 	
 //	public Tweet(String id, String text){
@@ -78,9 +81,9 @@ public class Tweet implements GenericPost{
 		}
 	}
 
-	public String getText() {
-		return text;
-	}
+//	public String getText() {
+//		return text;
+//	}
 	public String getBody(){
 		return text;
 	}
@@ -144,13 +147,12 @@ public class Tweet implements GenericPost{
 //		this.entities = entities;
 //	}
 
-	public TwitterUser getUser() {
-		return user;
-	}
-
-	public void setUser(TwitterUser user) {
-		this.user = user;
-	}
+//	public TwitterUser getUser() {
+//		return user;
+//	}
+//	public void setUser(TwitterUser user) {
+//		this.user = user;
+//	}
 	
 	@Override
 	public String toString(){
@@ -311,6 +313,7 @@ public class Tweet implements GenericPost{
 
 	@Override
 	public List<String> getSymptomtags() {
+		if (symptomtags.size()==0) return null;
 		return symptomtags;
 	}
 
@@ -319,6 +322,21 @@ public class Tweet implements GenericPost{
 		this.symptomtags = symptomtags;
 		
 	}
+
+	public String getUser_screen_name() {
+		return user_screen_name;
+	}
+	public String getAuthor() {
+		return user_screen_name;
+	}
+
+	public void setUser_screen_name(String user_screen_name) {
+		this.user_screen_name = user_screen_name;
+	}
+
+
+
+
 }
 
 /*

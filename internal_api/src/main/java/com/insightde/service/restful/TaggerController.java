@@ -64,7 +64,8 @@ public class TaggerController {
 			taggedResponse =  tr.toString();
 		}else if(ds== DataSourceType.TT){
 			Map<String, Tweet> payload = Maps.newHashMap();
-			payload.put("0", new ObjectMapper().readValue(jsonString, Tweet.class));
+			Tweet t = new ObjectMapper().readValue(jsonString, Tweet.class);
+			payload.put("0",t );
 			Map<String, Tweet> enriched = tagger.enrichPost(payload);
 			TaggerResponse tr = new TaggerResponse(ds);
 			tr.setTaggerRespTweet(enriched);
