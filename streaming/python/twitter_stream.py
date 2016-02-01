@@ -47,6 +47,15 @@ import unicodedata,re
 # multiple d-streams (tDas response)
 # http://apache-spark-user-list.1001560.n3.nabble.com/using-multiple-dstreams-together-spark-streaming-td9947.html
 
+# tabular data
+# https://www.mapr.com/blog/using-apache-spark-dataframes-processing-tabular-data
+
+# joining dataframes (see section, a more concrete example)
+# https://spark.apache.org/docs/1.5.2/api/python/pyspark.sql.html
+
+# how not to duplicate columns
+# https://forums.databricks.com/questions/876/is-there-a-better-method-to-join-two-dataframes-an.html
+
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
@@ -128,14 +137,13 @@ def printRdd(rdd):
   # df.show()
 
 def tfunc(t,rdd,rddb):
-  sqlCtx = SQLContext(sc)
   # texts
   try:
     #----- texts
     rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
     texts = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     texts.registerTempTable("texts")
-    texts = texts.select(texts.id,texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'))
+    texts = texts.select(texts.id,texts.created_utc,texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'))
 
     #----- bids
     rowRdd2= rddb.map(lambda w: Row(price=w['price'], pharmatag=w['pharmatags']))
@@ -143,18 +151,24 @@ def tfunc(t,rdd,rddb):
     bids.registerTempTable("bids")
     bids = bids.select(bids.price,bids.pharmatag)
     
-    #---- texts joined with bids
-    textsbids = texts.join(bids,texts.pharmatag==bids.pharmatag)
-    #textsbids.show()
-    #textsbidsJsonRDD = textsbids.toJSON()
-    # return textsbidsJsonRDD
+    #---- texts ids joined with pharma bids
+    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,bids.pharmatag,bids.price)
+    idbids.registerAsTable("idbids")
 
-    #-----texts_bids, find min
-    #textsbidsmin = new_df3.groupBy("id","created_utc","body","author","pharmatag").max("price")
-    textsbidsmin = textsbids.groupBy("id").agg(func.max("price"))
-    textsbidsmin.show()
-    textsbidsminJsonRDD = textsbidsmin.toJSON()
-    return textsbidsminJsonRDD
+    #-----texts id & bids, find min
+    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, pharmatag, max(price) as price FROM idbids GROUP BY id,pharmatag")
+    idsbidsmin.registerAsTable("idsbidsmin")
+    # idsbidsmin.show()
+    # idsbidsminJsonRDD = idsbidsmin.toJSON()
+    # return idsbidsminJsonRDD
+
+    #----- join it back to full dataframe
+    textsbids = texts.join(idsbidsmin,texts.pharmatag=idsbidsmin.pharmatag,'inner').select(texts.id,texts.author, texts.body, texts.created_utc, idsbidsmin.pharmatag, idsbidsmin.price)
+    textsbids.registerAsTable("textsbids")
+    textsbids.show()
+    textsbidsJsonRDD = textsbids.toJSON()
+    return textsbidsJsonRDD
+
   except 'Exception':
     pass
 
