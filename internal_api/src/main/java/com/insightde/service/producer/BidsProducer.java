@@ -47,12 +47,14 @@ public class BidsProducer {
 		
 		Map<String,Object> data = new HashMap<String, Object>();
 		
-		Map<String, Object> bidBatch = new HashMap<String, Object>();
+		List<Object> bidbatch = Lists.newArrayList();
+		Map<String, Object> bidItem = new HashMap<String, Object>();
 		for(String drug_comp : all_drug_companies){
-			bidBatch.put("name", drug_comp);
-			bidBatch.put("price", Nums.round(Nums.getRandomNumberInRange(1, 15)/100.00,2));
+			bidItem.put("name", drug_comp);
+			bidItem.put("price", Nums.round(Nums.getRandomNumberInRange(1, 15)/100.00,2));
+			bidbatch.add(bidItem);
 		}
-		data.put("batch", bidBatch);
+		data.put("batch", bidbatch);
 		LOG.log("prices",data);
 		
 	}
