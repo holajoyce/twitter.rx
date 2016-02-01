@@ -84,51 +84,6 @@ control_char_re = re.compile('[%s]' % re.escape(control_chars))
 
 
 
-
-def process(time, rdd):
-  print("========= process method starting %s =========" % str(time))
-  try:
-    print(json.dumps(x.take(2)))
-    #rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
-    #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-    #df.registerTempTable("df")
-    #exp = df.select(df.author,df.body,df.created_utc, explode(df.pharmatags).alias("pharmtag"))
-    #df_jsons = df.toJSON()
-    #print(json.dumps(df_jsons.take(2)))
-   
-  except:
-    pass
-    print("!!!!!!!!! error!")
-  print("========= process method ends %s =========" % str(time))
-
-
-
-
-def convert(rdd):
-  rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
-  df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-  df.registerTempTable("df")
-  new_df = df.select(df.author,df.body, explode(df.name).alias('name'))
-  new_rdd =  new_df.toRdd
-  # new_df.show()
-  #rowRdd = rdd.map(lambda w: Row(w))
-  #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
-  #df = sqlContext.createDataFrame(rowRdd)
-  #df.registerTempTable("df")
-  #df.show()
-  # item = rdd.take(1)
-  # if len(item)>0:
-  #   print(rdd.take(1)[0]['body'])
-  #print(rdd.take(1)[0])
-
-def enrich(x):
-  return requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()
-
-# text lines bundle
-
-
-
-
 def printRdd(rdd):
   print(rdd.take(1))
   # rowRdd = rdd.map(lambda w: Row(author=w['author'], body=w['body'], created_utc=w['created_utc'], name=w['name']))
@@ -140,6 +95,7 @@ def tfunc(t,rdd,rddb):
   # texts
   try:
     #----- texts
+
     rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
     texts = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     texts.registerTempTable("texts")
@@ -153,11 +109,11 @@ def tfunc(t,rdd,rddb):
     
     #---- texts ids joined with pharma bids
     idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, bids.pharmatag,bids.price)
-    idbids.registerAsTable("idbids")
+    idbids.registerTempTable("idbids")
 
     #-----texts id & bids, find min
     idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, pharmatag")
-    idsbidsmin.registerAsTable("idsbidsmin")
+    idsbidsmin.registerTempTable("idsbidsmin")
     idsbidsmin.show()
     idsbidsminJsonRDD = idsbidsmin.toJSON()
     return idsbidsminJsonRDD
@@ -176,7 +132,7 @@ def tfunc(t,rdd,rddb):
 #------------
 
 # these two ways are the same
-lines_texts = stream.map(lambda x:    json.loads(   control_char_re.sub('',requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text ))  )
+lines_texts = stream.map(lambda x:    requests.post(tagger_url,data=json.dumps(json.loads( control_char_re.sub('',x[1]))) ).json() )  
 #lines_texts = lines_texts.transform(lambda rdd:rdd.map(lambda x: convert))
 #lines_texts = stream.transform(lambda rdd:rdd.map(  enrich  ) ) #WORKS!
 lines_bids = stream2.map(lambda x: json.loads(x[1])   ) #works
