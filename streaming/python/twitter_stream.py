@@ -54,9 +54,12 @@ def getSqlContextInstance(sparkContext):
 sc = SparkContext(appName="stream_tagger")
 ssc = StreamingContext(sc, 1)
 
+#ssc2 = StreamingContext(sc, 1)
+
 
 zkQuorum, topic = sys.argv[1:]
-stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
+#stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
+stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids": 1})
 
 datasourcetype = "TT" if topic=="TT_raw" else "RD"
 tagger_url = "http://localhost:8555/tagbatch/"+datasourcetype
@@ -64,26 +67,6 @@ tagger_url = "http://localhost:8555/tagbatch/"+datasourcetype
 lines_count =0;
 LINES_COUNT_MAX=100;
 
-def tfunc_transform_data_stream(t, rdd):
-  """
-  Transforming function. Converts our blank RDD to something usable
-  :param t: datetime
-  :param rdd: rdd
-      Current rdd we're mapping to
-  """
-  return rdd.flatmap(lambda x: transform_data_stream)
-
-
-
-def transform_data_stream(json_line):
-  print("............. transform data stream method starting "+strftime("%Y-%m-%d %H:%M:%S", gmtime())+" .............")
-  print("............. end data stream method starting "+strftime("%Y-%m-%d %H:%M:%S", gmtime())+" ............." )
-  #yield line_enriched.text.encode("utf-8")
-  yield json_line
-  # data      = [('language', 'en'), ('locations', '-130,20,-60,50')]
-  # # query_url = config.url + '?' + '&'.join([str(t[0]) + '=' + str(t[1]) for t in data])
-  # post = json.loads(line.decode('utf-8'))
-  # print(line)
 
 
 def process(time, rdd):
@@ -104,13 +87,9 @@ def process(time, rdd):
 
 
 
-# jsons_stream = stream.map(lambda x: json.loads(x[1])) # make new stream
-# jsons_stream = stream.map(tag) # make new stream
-#parsed = jsons_stream.transform(tfunc_transform_data_stream)
 def printRdd(x):
   print(json.dumps(x.take(2)))
   print(x)
-
 
 def enrich(x):
   return requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()
@@ -119,23 +98,19 @@ def tfunc(rdd):
   return rdd.map(  enrich  )
 
 
+#------------
 
 # these two ways are the same
-lines = stream.transform(tfunc )
+#lines = stream.transform(tfunc ) #WORKS!
 #lines = stream.transform(lambda rdd: rdd.map(  lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).json()  ) )
 # lines = stream.map(lambda x: json.loads(x[1]))
+#lines.foreachRDD(printRdd) # WORKS
+
+lines2 = stream2.map(lambda x: json.loads(x[1]))
+lines2.foreachRDD(printRdd)
 
 
-lines.foreachRDD(printRdd)
 
-# lines = stream.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads(x[1]))).json() )
-# lines.foreachRDD(printRdd)
-
-# stream = stream.transform(tfunc_transform_data_stream)
-# parsed = stream.map(lambda (k,v): json.loads(v))
-#stream = stream.transform(tfunc_transform_data_stream)
-
-# parsed.foreachRDD(process)
 ssc.start()
 ssc.awaitTermination()
 
