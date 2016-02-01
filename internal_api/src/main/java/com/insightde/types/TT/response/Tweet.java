@@ -41,7 +41,7 @@ public class Tweet implements GenericPost{
 	// Member Variables
 	public Long id;
 	public String id_str;
-	private String text;
+	private String body;
 	private Date created_at;
 	private int favorite_count;
 	private int retweet_count;
@@ -55,7 +55,7 @@ public class Tweet implements GenericPost{
 	private List<String> symptomtags = Lists.newArrayList();
 	private long created_utc = 0L;
 	
-	private String user_screen_name;
+	private String author;
 	
 	
 //	public Tweet(String id, String text){
@@ -85,11 +85,11 @@ public class Tweet implements GenericPost{
 //		return text;
 //	}
 	public String getBody(){
-		return text;
+		return body;
 	}
 
 	public void setText(String text) {
-		this.text = text.replaceAll(textFormat, " ");
+		this.body = text.replaceAll(textFormat, " ");
 	}
 	public String getIdAsStr(){
 		if(getId_str()!=null){
@@ -323,19 +323,13 @@ public class Tweet implements GenericPost{
 		
 	}
 
-	public String getUser_screen_name() {
-		return user_screen_name;
-	}
 	public String getAuthor() {
-		return user_screen_name;
+		return author;
 	}
 
 	public void setUser_screen_name(String user_screen_name) {
-		this.user_screen_name = user_screen_name;
+		this.author = user_screen_name;
 	}
-
-
-
 
 }
 

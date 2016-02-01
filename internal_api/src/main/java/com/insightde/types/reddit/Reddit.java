@@ -109,6 +109,7 @@ public class Reddit implements GenericPost{
 	}
 
 	public List<String> getSymptomtags() {
+		if (symptomtags.size()==0) return null;
 		return symptomtags;
 	}
 
