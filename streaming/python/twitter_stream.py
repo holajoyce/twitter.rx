@@ -56,6 +56,9 @@ import unicodedata,re
 # how not to duplicate columns
 # https://forums.databricks.com/questions/876/is-there-a-better-method-to-join-two-dataframes-an.html
 
+# cassandra
+# https://github.com/datastax/spark-cassandra-connector/blob/master/doc/15_python.md
+
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
@@ -84,8 +87,11 @@ control_char_re = re.compile('[%s]' % re.escape(control_chars))
 
 
 
-def printRdd(rdd):
-  print(rdd.take(1))
+def process(rdd):
+  print(">>>> END")
+  print(rdd.take(10))
+  print(">>>> END")
+  # rdd.show()
   # rowRdd = rdd.map(lambda w: Row(author=w['author'], body=w['body'], created_utc=w['created_utc'], name=w['name']))
   # df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
   # df.registerTempTable("df")
@@ -113,41 +119,30 @@ def tfunc(t,rdd,rddb):
 
     #-----texts id & bids, find min
     idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, pharmatag")
-    idsbidsmin.registerTempTable("idsbidsmin")
-    idsbidsmin.show()
-    idsbidsminJsonRDD = idsbidsmin.toJSON()
-    return idsbidsminJsonRDD
+    idsbidsmin.registerTempTable("idsbidsmin") # dataframe
+    # idsbidsmin.write.format("org.apache.spark.sql.cassandra")
+    # see the spark-cassandra-connector githubpage datastax
+    #idsbidsmin.show()
+    # idsbidsminJsonRDD = idsbidsmin.toJSON()
 
-    #----- join it back to full dataframe
-    # textsbids = texts.join(idsbidsmin,texts.id==idsbidsmin.id,'inner').select(texts.id,texts.author,texts.body, texts.created_utc, idsbidsmin.pharmatag,idsbidsmin.price)
-    # textsbids.registerAsTable("textsbids")
-    # textsbids.show()
-    # textsbidsJsonRDD = textsbids.toJSON()
-    # return textsbidsJsonRDD
+    # idsbidsmin.map(lambda rdd: rdd )
+    # idsbidsminJsonRDD.first()
+    #yield(next(idsbidsmin.rdd)) #.first()
+    return idsbidsmin.rdd
+    # return idsbidsmin.rdd
 
   except 'Exception':
     pass
-
-
 #------------
-
-# these two ways are the same
+# 2 different streams 1 tweets, the other bids from pharmaceutical companies
 lines_texts = stream.map(lambda x:    requests.post(tagger_url,data=json.dumps(json.loads( control_char_re.sub('',x[1]))) ).json() )  
-#lines_texts = lines_texts.transform(lambda rdd:rdd.map(lambda x: convert))
-#lines_texts = stream.transform(lambda rdd:rdd.map(  enrich  ) ) #WORKS!
-lines_bids = stream2.map(lambda x: json.loads(x[1])   ) #works
-#lines_texts_with_bids = lines_texts.union(lines_bids) #works
+lines_bids = stream2.map(lambda x: json.loads(x[1])   ) 
 
-# lines_bids.foreachRDD(printRddBids)
-
+# join the streams together
 lines_texts_with_bids = lines_texts.transformWith(tfunc, lines_bids)
-#lines_texts.foreachRDD(printRdd)
 
-# lines_texts.foreachRDD(process)
-lines_texts_with_bids.foreachRDD(printRdd) # WORKS
-#lines_texts.transformWith(printRdd,lines_bids)
-
-
+# get back a new type of rdd & process
+lines_texts_with_bids.foreachRDD(process) 
 
 ssc.start()
 ssc.awaitTermination()
