@@ -22,6 +22,8 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
 from pyspark.sql import SQLContext, Row
+from pyspark.sql.functions import explode
+# from pyspark.sql.DataFrame import alias
 import json
 import requests
 from time import gmtime, strftime
@@ -60,7 +62,7 @@ zkQuorum, topic = sys.argv[1:]
 #brokers, topic = sys.argv[1:]
 #stream = KafkaUtils.createDirectStream(ssc, [topic], {"metadata.broker.list": brokers})
 stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
-#stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids": 1})
+stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids_prices2": 1})
 
 datasourcetype = "TT" if topic=="TT_raw" else "RD"
 tagger_url = "http://localhost:8555/tagbatch/"+datasourcetype
@@ -92,12 +94,14 @@ def process(time, rdd):
 
 
 
-def printRdd(rdd):
+
+def convert(rdd):
   rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
   df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
   df.registerTempTable("df")
-  # new_df = df.select(df.author,df.body, explode(df.pharmatags).alias('pharmatag')).show
-  df.show()
+  new_df = df.select(df.author,df.body, explode(df.name).alias('name'))
+  new_rdd =  new_df.toRdd
+  # new_df.show()
   #rowRdd = rdd.map(lambda w: Row(w))
   #df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
   #df = sqlContext.createDataFrame(rowRdd)
@@ -114,20 +118,52 @@ def enrich(x):
 # text lines bundle
 
 
+
+
+def printRdd(rdd):
+  print(rdd.take(1))
+  # rowRdd = rdd.map(lambda w: Row(author=w['author'], body=w['body'], created_utc=w['created_utc'], name=w['name']))
+  # df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+  # df.registerTempTable("df")
+  # df.show()
+
+def tfunc(t,rdd,rddb):
+  # texts
+  rowRdd = rdd.map(lambda w: Row(author=w['user_screen_name'], body=w['body'], created_utc=w['created_utc'], pharmatags=w['pharmatags']))
+  df = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
+  df.registerTempTable("df")
+  new_df = df.select(df.author,df.body, explode(df.pharmatags).alias('pharmatag'))
+  # bids
+  rowRdd2= rddb.map(lambda w: Row(price=w['price'], pharmatag=w['pharmatags']))
+  df2 = getSqlContextInstance(rddb.context).createDataFrame(rowRdd2) 
+  df2.registerTempTable("df2")
+  new_df2 = df2.select(df2.price,df2.pharmatag)
+  
+  new_df3 = new_df.join(new_df2,new_df.pharmatag==new_df2.pharmatag)
+  new_df3.show()
+  newRDD3 = new_df3.toJSON()
+  return newRDD3
+
+
 #------------
 
 # these two ways are the same
 lines_texts = stream.map(lambda x:    json.loads(   control_char_re.sub('',requests.post(tagger_url,data=json.dumps(json.loads(x[1])) ).text ))  )
+#lines_texts = lines_texts.transform(lambda rdd:rdd.map(lambda x: convert))
 #lines_texts = stream.transform(lambda rdd:rdd.map(  enrich  ) ) #WORKS!
-#lines_bids = stream2.map(lambda x: json.loads(x[0])) #works
+lines_bids = stream2.map(lambda x: json.loads(x[1])   ) #works
 #lines_texts_with_bids = lines_texts.union(lines_bids) #works
 
-#lines_texts_with_bids = lines_texts.join(lines2)
+# lines_bids.foreachRDD(printRddBids)
+
+lines_texts_with_bids = lines_texts.transformWith(tfunc, lines_bids)
+#lines_texts.foreachRDD(printRdd)
+
 # lines_texts.foreachRDD(process)
-lines_texts.foreachRDD(printRdd) # WORKS
+lines_texts_with_bids.foreachRDD(printRdd) # WORKS
+#lines_texts.transformWith(printRdd,lines_bids)
 
 
-#lines3.foreachRDD(printRdd)
 
 ssc.start()
 ssc.awaitTermination()
