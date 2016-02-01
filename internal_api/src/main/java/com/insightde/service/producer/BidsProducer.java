@@ -42,7 +42,7 @@ public class BidsProducer {
 	
 	// simulate bidding by pharma comps
 	// run this every 3 s
-	@Scheduled(fixedRate=10000)
+	@Scheduled(fixedRate=3000)
 	public void produceBidsSimulation(){
 		
 		Map<String,Object> data = new HashMap<String, Object>();
