@@ -56,6 +56,8 @@ import unicodedata,re
 # cassandra
 # http://rustyrazorblade.com/2015/08/migrating-from-mysql-to-cassandra-using-spark/
 
+# if need to use connectionpool http://www.cnblogs.com/englefly/p/4579863.html
+
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
@@ -154,8 +156,8 @@ lines_texts_with_bids.foreachRDD(process)
 # if want to see output, can use
 # lines_texts_with_bids.pprint()
 # lines_texts_with_bids.mapPartitions(process)
+lines_texts_with_bids.foreachRDD(process)
 
-lines_texts_with_bids.foreachRDD(lambda rdd: rdd.foreachPartition(sendPartition))
 
 ssc.start()
 ssc.awaitTermination()
