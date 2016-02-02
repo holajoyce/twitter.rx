@@ -14,6 +14,8 @@ public interface GenericPost {
 	public Set<String> getConditiontags();
 	public void setConditiontags(Set<String> conditiontags);
 	
+	public Set<String> getDrugtags();
+	public void setDrugtags(Set<String> drugtags);
 	
 	public String getBody();
 	public String getIdAsStr();

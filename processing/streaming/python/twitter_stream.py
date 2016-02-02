@@ -103,14 +103,17 @@ def process(rdd):
 
   # wonbidsJson.saveToEs('test/docs')
            
-  symptoms = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.symptomtags).alias('symptom'))
+  symptoms = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.symptomtags).alias('symptom'),\
+                            
+                            wonbids.price,wonbids.pharmatag)
   symptoms.registerTempTable("symptoms")
   symptoms.write.format("org.apache.spark.sql.cassandra").\
          options(keyspace="text_bids", table="symptoms").\
          save(mode="append")
   symptoms.show()
 
-  conditions = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.conditiontags).alias('condition'))
+  conditions = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.conditiontags).alias('condition'),\
+                              wonbids.price,wonbids.pharmatag)
   conditions.registerTempTable("conditions")
   conditions.write.format("org.apache.spark.sql.cassandra").\
          options(keyspace="text_bids", table="conditions").\
@@ -142,7 +145,8 @@ def tfunc(t,rdd,rddb):
      pharmatags=w['pharmatags'],conditiontags=w['conditiontags'], symptomtags=w['symptomtags']))
     texts = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     texts.registerTempTable("texts")
-    texts = texts.select(texts.id,from_unixtime(texts.created_utc).alias('created_utc'),texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'), texts.conditiontags, texts.symptomtags)
+    texts = texts.select(texts.id,from_unixtime(texts.created_utc).alias('created_utc'),texts.author,\
+        texts.body, explode(texts.pharmatags).alias('pharmatag'), texts.conditiontags, texts.symptomtags)
     # return texts.rdd
 
     #----- bids
