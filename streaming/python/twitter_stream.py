@@ -32,7 +32,6 @@ import requests
 from time import gmtime, strftime
 import unicodedata,re
 
-
 # REFERENCES
 # https://github.com/apache/spark/blob/master/examples/src/main/python/streaming/sql_network_wordcount.py
 # https://github.com/willzfarmer/TwitterPanic/blob/master/python/analysis.py
@@ -57,7 +56,6 @@ import unicodedata,re
 # http://rustyrazorblade.com/2015/08/migrating-from-mysql-to-cassandra-using-spark/
 
 # if need to use connectionpool http://www.cnblogs.com/englefly/p/4579863.html
-
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
@@ -71,8 +69,6 @@ sc = SparkContext(appName="stream_tagger")
 ssc = StreamingContext(sc, 1)
 
 zkQuorum, topic = sys.argv[1:]
-#brokers, topic = sys.argv[1:]
-#stream = KafkaUtils.createDirectStream(ssc, [topic], {"metadata.broker.list": brokers})
 stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
 stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids_prices2": 1})
 
@@ -88,26 +84,26 @@ control_char_re = re.compile('[%s]' % re.escape(control_chars))
 
 def process(rdd):
   print(">>>> BEGIN CASS")
-  df = getSqlContextInstance(rdd.context).createDataFrame(rdd) 
-  df.registerTempTable("df")
-  df.show()
-  df.write.format("org.apache.spark.sql.cassandra").\
+  wonbids = getSqlContextInstance(rdd.context).createDataFrame(rdd) 
+  wonbids.registerTempTable("wonbids")
+  wonbids.write.format("org.apache.spark.sql.cassandra").\
            options(keyspace="text_bids", table="bidswon").\
            save(mode="append")
+           
+  symptoms = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.symptomtags).alias('symptom'))
+  symptoms.registerTempTable("symptoms")
+  symptoms.write.format("org.apache.spark.sql.cassandra").\
+         options(keyspace="text_bids", table="symptoms").\
+         save(mode="append")
+  symptoms.show()
+
+  conditions = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.conditiontags).alias('condition'))
+  conditions.registerTempTable("conditions")
+  conditions.write.format("org.apache.spark.sql.cassandra").\
+         options(keyspace="text_bids", table="conditions").\
+         save(mode="append")
+  conditions.show()
   print(">>>> END CASS")
-
-
-def sendPartition(iter):
-    # connection = createNewConnection()
-    for rdd in iter:
-      print(">>>> BEGIN CASS")
-      df = getSqlContextInstance(rdd.context).createDataFrame(rdd) 
-      df.registerTempTable("df")
-      df.show()
-      df.write.format("org.apache.spark.sql.cassandra").\
-               options(keyspace="text_bids", table="bidswon").\
-               save(mode="append")
-      print(">>>> END CASS")
 
 # this function converts rdds into dataframes & join & filter, and return back rdd
 def tfunc(t,rdd,rddb):
@@ -156,8 +152,7 @@ lines_texts_with_bids.foreachRDD(process)
 # if want to see output, can use
 # lines_texts_with_bids.pprint()
 # lines_texts_with_bids.mapPartitions(process)
-lines_texts_with_bids.foreachRDD(process)
-
+# lines_texts_with_bids.foreachRDD(process)
 
 ssc.start()
 ssc.awaitTermination()
