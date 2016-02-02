@@ -30,6 +30,11 @@ import json
 import requests
 from time import gmtime, strftime
 import unicodedata,re
+from pyspark_elastic import EsSparkContext
+from kafka import KafkaProducer
+
+from fluent import sender
+from fluent import event
 
 # REFERENCES
 # https://github.com/apache/spark/blob/master/examples/src/main/python/streaming/sql_network_wordcount.py
@@ -54,22 +59,29 @@ import unicodedata,re
 # cassandra
 # http://rustyrazorblade.com/2015/08/migrating-from-mysql-to-cassandra-using-spark/
 
+# to kafka
+# https://stackoverflow.com/questions/32320618/sending-large-csv-to-kafka-using-python-spark
+
 # if need to use connectionpool http://www.cnblogs.com/englefly/p/4579863.html
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
   return globals()['sqlContextSingletonInstance']
 
-conf = SparkConf().setAppName("PySpark Cassandra Text Bids Join") 
-  # .set("spark.cassandra.connection.host", "ip-172-31-1-134")
+conf = SparkConf().setAppName("PySpark Cassandra Text Bids Join").set("spark.es.host", "ec2-52-88-7-3.us-west-2.compute.amazonaws.com")
+
 
 # sc = CassandraSparkContext(conf=conf)
-sc = SparkContext(appName="stream_tagger")
+sc = SparkContext(conf=conf)
+# sc = EsSparkContext(conf=conf)
 ssc = StreamingContext(sc, 1)
+
+sender.setup('spark.out', host='localhost', port=24224)
 
 zkQuorum, topic = sys.argv[1:]
 stream = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer", {topic: 1})
 stream2 = KafkaUtils.createStream(ssc, zkQuorum, "spark-streaming-consumer2", {"pharma_bids_prices2": 1})
+# producer = KafkaProducer(value_serializer=json.loads,bootstrap_servers=['ec2-52-33-248-41.us-west-2.compute.amazonaws.com:9092'])
 
 datasourcetype = "TT" if topic=="TT_raw" else "RD"
 tagger_url = "http://localhost:8555/tagbatch/"+datasourcetype
@@ -88,6 +100,8 @@ def process(rdd):
   wonbids.write.format("org.apache.spark.sql.cassandra").\
            options(keyspace="text_bids", table="bidswon").\
            save(mode="append")
+
+  # wonbidsJson.saveToEs('test/docs')
            
   symptoms = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.symptomtags).alias('symptom'))
   symptoms.registerTempTable("symptoms")
@@ -102,6 +116,20 @@ def process(rdd):
          options(keyspace="text_bids", table="conditions").\
          save(mode="append")
   conditions.show()
+
+  # this is a smaller set
+  # wonbids_less_txt = wonbids.select(wonbids.id, wonbids.created_utc, wonbids.symptomtags, wonbids.conditiontags)
+  # wonbidsJsons = wonbids_less_txt.toJSON()
+  #wonbids_less_txt.registerTempTable("wonbids_less_txt")
+
+  # send back to master to process
+  for w in wonbids.collect():
+    # print(json.dumps(wonbidsJson))
+    # producer = KafkaProducer(value_serializer=lambda m: json.dumps(m).encode('ascii'))
+    # producer.send('enriched1', wonbidsJson)
+    event.Event('toES', {'id':w.id,'created_utc':w.created_utc,'symptomtags':w.symptomtags,'conditiontags':w.conditiontags})
+  #wonbidsJsons.saveAsTextFile("/data/toES.json")
+
   print(">>>> END CASS")
 
 # this function converts rdds into dataframes & join & filter, and return back rdd
@@ -109,7 +137,6 @@ def tfunc(t,rdd,rddb):
   # texts
   try:
     #----- texts
-
     rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'],\
      body=w['body'], created_utc=w['created_utc'], \
      pharmatags=w['pharmatags'],conditiontags=w['conditiontags'], symptomtags=w['symptomtags']))
@@ -147,6 +174,7 @@ lines_texts_with_bids = lines_texts.transformWith(tfunc, lines_bids)
 
 # get back a new type of rdd & process
 lines_texts_with_bids.foreachRDD(process) 
+# lines_texts_with_bids.foreachPartition(process)
 
 # if want to see output, can use
 # lines_texts_with_bids.pprint()
