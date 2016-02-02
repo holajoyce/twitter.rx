@@ -74,7 +74,7 @@ conf = SparkConf().setAppName("PySpark Cassandra Text Bids Join").set("spark.es.
 # sc = CassandraSparkContext(conf=conf)
 sc = SparkContext(conf=conf)
 # sc = EsSparkContext(conf=conf)
-ssc = StreamingContext(sc, 1)
+ssc = StreamingContext(sc, 2)
 
 sender.setup('spark.out', host='localhost', port=24224)
 
@@ -124,11 +124,7 @@ def process(rdd):
 
   # send back to master to process
   for w in wonbids.collect():
-    # print(json.dumps(wonbidsJson))
-    # producer = KafkaProducer(value_serializer=lambda m: json.dumps(m).encode('ascii'))
-    # producer.send('enriched1', wonbidsJson)
-    event.Event('toES', {'id':w.id,'created_utc':w.created_utc,'symptomtags':w.symptomtags,'conditiontags':w.conditiontags})
-  #wonbidsJsons.saveAsTextFile("/data/toES.json")
+    event.Event('toES', {'id':w.id,'author':w.author,'body':w.body,'pharmatag':w.pharmatag,'price':w.price,'created_utc':w.created_utc,'symptomtags':w.symptomtags,'conditiontags':w.conditiontags})
 
   print(">>>> END CASS")
 
