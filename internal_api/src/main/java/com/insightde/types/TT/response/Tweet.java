@@ -58,6 +58,7 @@ public class Tweet implements GenericPost{
 	private List<String> symptomtags = Lists.newArrayList();
 	private Set<String> conditiontags = Sets.newHashSet();
 	private long created_utc = 0L;
+//	private long timestamp_ms = 0L;
 	
 	private String user_screen_name;
 	
@@ -349,6 +350,14 @@ public class Tweet implements GenericPost{
 	public void setUser_screen_name(String user_screen_name) {
 		this.user_screen_name = user_screen_name;
 	}
+
+//	public long getTimestamp_ms() {
+//		return timestamp_ms;
+//	}
+//
+//	public void setTimestamp_ms(long timestamp_ms) {
+//		this.timestamp_ms = timestamp_ms;
+//	}
 
 }
 
