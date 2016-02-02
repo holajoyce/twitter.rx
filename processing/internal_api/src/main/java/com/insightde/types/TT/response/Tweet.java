@@ -57,7 +57,6 @@ public class Tweet implements GenericPost{
 	private List<String> pharmatags = Lists.newArrayList();
 	private List<String> symptomtags = Lists.newArrayList();
 	private Set<String> conditiontags = Sets.newHashSet();
-	private Set<String> drugtags = Sets.newHashSet();
 	private long created_utc = 0L;
 //	private long timestamp_ms = 0L;
 	
@@ -342,15 +341,6 @@ public class Tweet implements GenericPost{
 	public void setConditiontags(Set<String> conditiontags) {
 		this.conditiontags = conditiontags;
 		
-	}
-	
-	@Override
-	public Set<String> getDrugtags() {
-		return drugtags;
-	}
-	@Override
-	public void setDrugtags(Set<String> drugtags) {
-		this.drugtags = drugtags;
 	}
 
 	public String getUser_screen_name() {
