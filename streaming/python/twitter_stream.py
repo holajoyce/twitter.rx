@@ -1,5 +1,4 @@
 # http://zdatainc.com/2014/08/real-time-streaming-apache-spark-streaming/
-# HI!!
 """
  Counts words in UTF8 encoded, '\n' delimited text received from the network every second.
  Usage: kafka_wordcount.py <zk> <topic>
