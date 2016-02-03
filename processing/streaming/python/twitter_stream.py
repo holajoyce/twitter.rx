@@ -124,9 +124,17 @@ def process(rdd):
 
   # send back to master to process
   for w in wonbids.collect():
-    event.Event('toES', {'id':w.id,'author':w.author,'body':w.body,'pharmatag':w.pharmatag,'price':w.price,'created_utc':w.created_utc,'symptomtags':w.symptomtags,'conditiontags':w.conditiontags})
+    event.Event('toES', {'id':w.id,'pharmatag':w.pharmatag,'price':w.price,'created_utc':w.created_utc,'symptomtags':w.symptomtags,'conditiontags':w.conditiontags})
+    # event.Event('toES', {'id':w.id,'author':w.author,'body':w.body,'pharmatag':w.pharmatag,'price':w.price,'created_utc':w.created_utc,'symptomtags':w.symptomtags,'conditiontags':w.conditiontags})
 
   print(">>>> END CASS")
+
+
+def debugprint(rdd):
+  print(rdd.take(1))
+
+def debugprintjson(rdd):
+  print(json.dumps(rdd.take(1)))
 
 # this function converts rdds into dataframes & join & filter, and return back rdd
 def tfunc(t,rdd,rddb):
@@ -162,8 +170,9 @@ def tfunc(t,rdd,rddb):
     pass
 #------------
 # get 2 different streams: 1 for texts (after being tagged by webservice), the other bids from pharmaceutical companies
-lines_texts = stream.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads( control_char_re.sub('',x[1]))) ).json() )  
-lines_bids = stream2.map(lambda x: json.loads(x[1])   ) 
+lines_texts = stream.map(lambda x: requests.post(tagger_url,data=json.dumps(json.loads( control_char_re.sub('',x[1]))) ).json() ).filter(lambda w: w is not None and "pharmatags" in w and len(w['pharmatags']) > 0 and "body" in w)
+lines_bids = stream2.map(lambda x: json.loads(x[1])).filter(lambda w: w is not None) 
+# lines_bids.foreachRDD(debugprintjson)  
 
 # join the streams together
 lines_texts_with_bids = lines_texts.transformWith(tfunc, lines_bids)
