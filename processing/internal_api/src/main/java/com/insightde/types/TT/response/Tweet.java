@@ -51,7 +51,7 @@ public class Tweet implements GenericPost{
 	private List<String> pharmatags = Lists.newArrayList();
 	private List<String> symptomtags = Lists.newArrayList();
 	private Set<String> conditiontags = Sets.newHashSet();
-	private long created_utc = 0L;
+	private long timestamp_ms = 0L;
 	private String user_screen_name;
 	
 	public Date getCreated_at() {
@@ -277,15 +277,14 @@ public class Tweet implements GenericPost{
 		return null;
 	}
 	
-	public Long getCreated_utc() {
-		if(created_utc==0L)
-			created_utc = this.getCreated_at().getTime()/1000;
-	    return created_utc;
+	public Long getTimestamp_ms(){
+		return timestamp_ms;
 	}
-
-	public void setCreated_utc(long created_utc) {
-		this.created_utc = created_utc;
+	
+	public void setTimestamp_ms(Long timestamp_ms){
+		this.timestamp_ms = timestamp_ms;
 	}
+	
 
 	public List<String> getPharmatags() {
 //		if (pharmatags.size()==0) return null;
