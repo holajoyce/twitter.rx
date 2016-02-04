@@ -1,0 +1,79 @@
+{% extends "base.html" %} <!--this means that you are extending the base tempate -->
+{% block monitors %} <!-- this is the name of the block below -->
+
+<link href="https://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css" rel="stylesheet">
+
+<div class="row tab" style="height:100vh;">
+	<br> <br> 	<br> <br> 	<br> <br>
+	<input type="button" onclick="start_update()" value="Start"/>
+	<input type="button" onclick="stop_update()" value="Stop"/>	
+	<table id="monitors" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Monitor</th>
+                <th>Bandwidth</th>
+            </tr>
+        </thead>
+		<tfoot>
+            <tr>
+                <th>Monitor</th>
+                <th>Bandwidth</th>
+            </tr>
+        </tfoot>		
+    </table>
+	<div id="edix"> </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+	var monitorsTable = $('#monitors').DataTable({
+		'fnCreatedRow' : function (nRow, aData, iDataIndex) {
+			var mon_id = 'MONITOR_' + aData[0];
+			//console.log("Row:" + mon_id);
+			$(nRow).attr('id', mon_id);
+		}
+	});
+	
+	var monUpdateTimer = '';
+	
+	function start_update() {
+		monUpdateTimer = setInterval("update_monitors()",1000);
+	}
+
+	function update_monitors() { 
+		$.ajax({
+			type: "GET",
+			url: "/api/stream/monitors/",
+			data: "=success",
+			success: function(msg) {
+				var monLen = msg.monitors.length;
+				//console.log(monLen)
+				for (var i = 0; i < monLen; i++) {
+					var mon = msg.monitors[i];
+					var mon_id = '#MONITOR_' + mon.monitor;
+					var mon_row = monitorsTable.row(mon_id)
+					
+					if (mon_row.any()) {
+						//console.log("Found Row:" + mon_id);
+						mon_row.data([mon.monitor, mon.tdeltaagg])
+					} else {
+						//console.log("Adding Row:" + mon_id);
+						monitorsTable.row.add([mon.monitor, mon.tdeltaagg])
+					}
+				}
+				monitorsTable.draw( false );
+			}
+		});
+	}
+	
+	function stop_update() {
+		clearInterval(monUpdateTimer);
+	}	
+	
+	$(document).ready(function() {
+		start_update();
+	});
+
+</script> 
+{% endblock %} 

@@ -1,0 +1,118 @@
+{% extends "base.html" %} <!--this means that you are extending the base tempate -->
+{% block index %} <!-- this is the name of the block below -->
+  <div class="container-fluid">
+    <div class="row">
+
+      <div class="col-sm-8">
+        <div class="chart-wrapper">
+          <div class="chart-title">
+            
+            {% include 'tl_pharma_winning_the_most.html' %}
+          </div>
+          <div class="chart-stage">
+            <div id="chart-01"></div>
+          </div>
+          <div class="chart-notes">
+            Pharmas winning the most bids
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-4">
+        <div class="chart-wrapper">
+          <div class="chart-title">
+            
+            {% include 'tl_pharma_winning_the_most.html' %}
+          </div>
+              <!-- <div class="chart-stage">
+            <div id="chart-02"></div>
+          </div> -->
+          <div class="chart-notes">
+            Top winning Pharaceuticals in Time period
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="row">
+
+      <div class="col-sm-4">
+        <div class="chart-wrapper">
+          <div class="chart-title">
+            Pharma winning most
+            
+          </div>
+          <div class="chart-stage">
+            <div id="chart-03"></div>
+          </div>
+          <div class="chart-notes">
+            Notes go down here
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-4">
+        <div class="chart-wrapper">
+          <div class="chart-title">
+            Impressions by device
+          </div>
+          <div class="chart-stage">
+            <div id="chart-04"></div>
+          </div>
+          <div class="chart-notes">
+            Notes go down here
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-4">
+        <div class="chart-wrapper">
+
+
+          <div class="chart-title">
+            Impressions by country
+          </div>
+
+          <div class="chart-stage">
+            <div id="chart-05"></div>
+            
+          </div>
+          <div class="chart-notes">
+            Notes go down here
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row">
+      <div class="col-sm-3">
+        <div class="chart-wrapper">
+          <img data-src="holder.js/100%x150/white">
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="chart-wrapper">
+          <img data-src="holder.js/100%x150/white">
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="chart-wrapper">
+          <img data-src="holder.js/100%x150/white">
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="chart-wrapper">
+          <img data-src="holder.js/100%x150/white">
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <p class="small text-muted">Built with &#9829; by <a href="https://keen.io">Keen IO</a></p>
+
+  </div>
+{% endblock %} 

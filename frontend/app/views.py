@@ -1,52 +1,49 @@
-from app import app
-from flask import jsonify
-from cassandra.cluster import Cluster
+#!/usr/bin/python
 
+from app import app
+from flask import jsonify 
+from app import app
+from cassandra.cluster import Cluster
+import calendar 
+import time
 from flask import render_template
 
-cluster = Cluster(['52.89.89.147','52.88.121.199','52.89.90.56','52.88.7.3'])
 
-session = cluster.connect('playground')
+cluster = Cluster(["52.88.7.3","52.89.90.56","52.88.121.199","52.89.89.147"]) 
+session = cluster.connect('text_bids') 
 
-
-@app.route('/')
-@app.route('/index')
-def index():
-  user = { 'nickname': 'Miguel' } # fake user
-  mylist = [1,2,3,4]
-  return render_template("index.html", title = 'Home', user = user, mylist = mylist)
-
-@app.route('/api/<email>/<date>')
+g_monitors = {}
+   
+@app.route('/api/email/<email>/<date>')
 def get_email(email, date):
 	stmt = "SELECT * FROM email WHERE id=%s and date=%s"
 	response = session.execute(stmt, parameters=[email, date])
 	response_list = []
 	for val in response:
-	    response_list.append(val)
+		response_list.append(val)
 	jsonresponse = [{"first name": x.fname, "last name": x.lname, "id": x.id, "message": x.message, "time": x.time} for x in response_list]
 	return jsonify(emails=jsonresponse)
+	
 
-@app.route('/email')
-def email():
-	return render_template("email.html")
+@app.route('/')
+@app.route('/index')
+def index():
+    return render_template("index.html")
 
-@app.route("/email", methods=['POST'])
-def email_post():
-	emailid = request.form["emailid"]
-	date = request.form["date"]
-	stmt = "SELECT * FROM email WHERE id=%s and date=%s"
-	response = session.execute(stmt, parameters=[emailid, date])
+@app.route('/monitors')
+def monitors():
+    return render_template("monitors.html")
+	
+@app.route('/api/stream/bidswon/<company>/<begin>/<end>', defaults={'begin': None, 'end':None})
+def report_monitors(company, begin, end):
+	print("begin: "+str(begin))
+	stmt = "SELECT * from bidswon WHERE created_utc>"+str(begin)+" AND created_utc<"+str(end)+" AND pharmatag = '"+company+"';"
+	print(stmt)
+	# return stmt
+	response = session.execute(stmt)
+	# print response
 	response_list = []
 	for val in response:
-	 response_list.append(val)
-	jsonresponse = [{"fname": x.fname, "lname": x.lname, "id": x.id, "message": x.message, "time": x.time} for x in response_list]
-	return render_template("emailop.html", output=jsonresponse)
-
-
-@app.route('/realtime')
-def realtime():
-	return render_template("realtime.html")
-
-#we will now create emailop.html to display the results
-
-
+		response_list.append(val)
+	jsonresponse = [{"author": x.author, "price": x.price, "body": x.body} for x in response_list]
+	return jsonify(stream=jsonresponse)
