@@ -1,9 +1,0 @@
-field,datatype,description,notes,analsis,in elasticsearch,enriched,in raw
-,,,,,,,
-pharmatags,,pharamceuticals able to bid on this text,,,0,1,0
-timestamp,"date, epoch millis",,need to rename this from created_at_utc,,1,1,0
-author,string,,,,1,1,1
-pharma_won,string,the pharmacy who ultimately won,,,1,1,0
-bidprice,long,winning bid,,,1,1,0
-body,string,,,,1,1,1
-id,string,,,whitespace lower case,1,1,1
