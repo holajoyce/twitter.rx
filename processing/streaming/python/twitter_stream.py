@@ -100,22 +100,21 @@ def process(rdd):
   wonbids.write.format("org.apache.spark.sql.cassandra").\
            options(keyspace="text_bids", table="bidswon").\
            save(mode="append")
-
-  # wonbidsJson.saveToEs('test/docs')
-           
+  wonbids.show()
+ 
   symptoms = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.symptomtags).alias('symptom'))
   symptoms.registerTempTable("symptoms")
   symptoms.write.format("org.apache.spark.sql.cassandra").\
          options(keyspace="text_bids", table="symptoms").\
          save(mode="append")
-  symptoms.show()
+  # symptoms.show()
 
   conditions = wonbids.select(wonbids.id,wonbids.created_utc,explode(wonbids.conditiontags).alias('condition'))
   conditions.registerTempTable("conditions")
   conditions.write.format("org.apache.spark.sql.cassandra").\
          options(keyspace="text_bids", table="conditions").\
          save(mode="append")
-  conditions.show()
+  # conditions.show()
 
   # this is a smaller set
   # wonbids_less_txt = wonbids.select(wonbids.id, wonbids.created_utc, wonbids.symptomtags, wonbids.conditiontags)
@@ -141,9 +140,15 @@ def tfunc(t,rdd,rddb):
   # texts
   try:
     #----- texts
-    rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'],\
-     body=w['body'], created_utc=w['created_utc'], \
-     pharmatags=w['pharmatags'],conditiontags=w['conditiontags'], symptomtags=w['symptomtags']))
+    if topic=="TT_raw":
+      rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['user_screen_name'],\
+      body=w['body'], created_utc=str(int(w['timestamp_ms'])/1000), \
+      pharmatags=w['pharmatags'],conditiontags=w['conditiontags'], symptomtags=w['symptomtags']))
+    else:  # this is reddit
+      rowRdd = rdd.map(lambda w: Row(id=w['id'],author=w['author'],\
+      body=w['body'], created_utc=w['created_utc'], \
+      pharmatags=w['pharmatags'],conditiontags=w['conditiontags'], symptomtags=w['symptomtags']))
+
     texts = getSqlContextInstance(rdd.context).createDataFrame(rowRdd) 
     texts.registerTempTable("texts")
     texts = texts.select(texts.id,from_unixtime(texts.created_utc).alias('created_utc'),texts.author,texts.body, explode(texts.pharmatags).alias('pharmatag'), texts.conditiontags, texts.symptomtags)
