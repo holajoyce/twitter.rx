@@ -97,15 +97,9 @@ public class IodineLuwakTagger  implements Tagger {
 	public void registerQueries() {
 		
 		// get the iodine.com definitions from downloaded dictionary files
-		
-//		for(String symptom: isp.getAll_symptoms()){
-//			queries.add(new MonitorQuery(symptom,symptom));
-//		}
-		
-		for(String condition: isp.getCondition_drug_companies().keySet()){
-			queries.add(new MonitorQuery(condition,condition));
+		for(String symptom: isp.getAll_symptoms()){
+			queries.add(new MonitorQuery(symptom,symptom));
 		}
-		
 
 		logger.info("Finished registering queries");
 		try {
@@ -132,26 +126,13 @@ public class IodineLuwakTagger  implements Tagger {
 	            Set<String>conditionTagsSet = Sets.newHashSet();
 	            List<String>symptomTags = Lists.newArrayList();
 	            List<String>pharmaTagsList = Lists.newArrayList();
-	            Set<String>drugsTags = Sets.newHashSet();
-	            
-//	            for (HighlightsMatch match : docMatches) {
-//	            	String symptom = match.getQueryId();
-//	            	symptomTags.add(symptom);
-//	            	conditionTagsSet.addAll(isp.getSymptoms_conditions().get(symptom));
-//	            	pharmaTagsSet.addAll(isp.getSymptoms_drug_companies().get(symptom));
-//	            }
 	            
 	            for (HighlightsMatch match : docMatches) {
-	            	String condition = match.getQueryId();
-	            	conditionTagsSet.add(condition);
-	            	Map<String,Set<String>>drugs_drugcomps = isp.getCondition_drug_companies().get(condition);
-	            	//conditionTagsSet.addAll(isp.getSymptoms_conditions().get(symptom));
-	            	drugsTags.addAll(drugs_drugcomps.keySet());
-	            	for(String drug : drugs_drugcomps.keySet()){
-	            		pharmaTagsSet.addAll(drugs_drugcomps.get(drug));
-	            	}
+	            	String symptom = match.getQueryId();
+	            	symptomTags.add(symptom);
+	            	conditionTagsSet.addAll(isp.getSymptoms_conditions().get(symptom));
+	            	pharmaTagsSet.addAll(isp.getSymptoms_drug_companies().get(symptom));
 	            }
-	            
 	            if(!pharmaTagsSet.isEmpty()){
 	            	for(String key: post.keySet()){
 	            		GenericPost gp = (GenericPost) post.get(key);
@@ -161,9 +142,11 @@ public class IodineLuwakTagger  implements Tagger {
 	            		Collections.sort(pharmaTagsList);
 	            		gp.setPharmatags(pharmaTagsList);
 	            		
+	            		// add condition tags
 	            		gp.setConditiontags(conditionTagsSet);
+	            		
+	            		// add symptoms tags
 	            		gp.setSymptomtags(symptomTags);
-	            		gp.setDrugtags(drugsTags);
 	            	}
 	            	
 	            }

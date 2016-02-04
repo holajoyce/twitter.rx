@@ -41,7 +41,6 @@ public class Reddit implements GenericPost{
 	private List<String> pharmatags = Lists.newArrayList();
 	private List<String> symptomtags = Lists.newArrayList();
 	private Set<String> conditiontags = Sets.newHashSet();
-	private Set<String> drugtags = Sets.newHashSet();
 	
 	public static Reddit jsonToPojo(String msg) {
 		mapper = new ObjectMapper();
@@ -107,24 +106,19 @@ public class Reddit implements GenericPost{
 	@Override
 	public void setSymptomtags(List<String> symptomtags) {
 		this.symptomtags = symptomtags;
+		
 	}
 	
 	@Override
 	public Set<String> getConditiontags() {
+//		if (conditiontags.size()==0) return null;
 		return conditiontags;
 	}
+
 	@Override
 	public void setConditiontags(Set<String> conditiontags) {
 		this.conditiontags = conditiontags;
-	}
-	
-	@Override
-	public Set<String> getDrugtags() {
-		return drugtags;
-	}
-	@Override
-	public void setDrugtags(Set<String> drugtags) {
-		this.drugtags = drugtags;
+		
 	}
 
 	public String getId() {
