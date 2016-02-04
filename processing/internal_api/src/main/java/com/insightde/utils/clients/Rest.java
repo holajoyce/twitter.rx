@@ -31,8 +31,6 @@ public class Rest {
 	
 	@SuppressWarnings("deprecation")
 	public static String post(String url,String request){
-
-		
 		try{
 			ClientRequest clientRequest = new ClientRequest(url).accept(mediaType).body(mediaType, request);
 //			clientRequest.header("Content-Type", "application/json");

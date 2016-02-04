@@ -12,6 +12,9 @@ import com.insightde.types.TT.response.Tweet;
 import com.insightde.types.reddit.Reddit;
 import com.insightde.types.sources.DataSourceType;
 import com.insightde.utils.IodineJsonParser;
+import com.insightde.utils.clients.Rest;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.ReadContext;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import uk.co.flax.luwak.DocumentBatch;
@@ -30,6 +33,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,6 +48,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.springframework.beans.BeanUtils;
+import org.springframework.scheduling.annotation.Scheduled;
 
 
 public class IodineLuwakTagger  implements Tagger {
@@ -59,6 +65,7 @@ public class IodineLuwakTagger  implements Tagger {
 	IodineJsonParser isp;
 	private DataSourceType datasourceType=null;
 	
+	
 	public IodineLuwakTagger(){
 		this(
 			ApplicationModeType.findByShortName(conf.getString("application.mode"))
@@ -73,6 +80,8 @@ public class IodineLuwakTagger  implements Tagger {
 		initMonitor();
 		registerQueries();
 	}
+	
+	
 
 	
 	private void initMonitor(){

@@ -1,5 +1,7 @@
 package com.insightde.utils;
 
+import static org.apache.log4j.Logger.getLogger;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +15,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 //import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -22,9 +25,9 @@ import com.jayway.jsonpath.ReadContext;
 //import redis.clients.jedis.Jedis;
 
 public class IodineJsonParser {
-	
-	private Set<String> 						all_drug_companies 		= Sets.newHashSet();
-//	private Set<String>							all_symptoms			 = Sets.newHashSet();
+	final static org.apache.log4j.Logger logger = getLogger(IodineJsonParser.class);
+	private static Set<String> 					all_drug_companies 		= Sets.newHashSet();
+	private static List<String> 				all_drug_companies_list = Lists.newArrayList();
 	private Map<String,Map<String,Set<String>>> condition_drug_companies= Maps.newHashMap();
 	private Map<String,Set<String>> 			symptoms_conditions 	= Maps.newHashMap();
 	private Map<String,Set<String>> 			symptoms_drug_companies = Maps.newHashMap();
@@ -38,6 +41,9 @@ public class IodineJsonParser {
 		for(String d: all_drug_companies){
 			System.out.println(d);
 		}
+		all_drug_companies_list.addAll(all_drug_companies);
+		logger.info(all_drug_companies_list.size());
+		Collections.sort(all_drug_companies_list);
 	}
 	
 	private void readConditionsDir(){
@@ -76,8 +82,6 @@ public class IodineJsonParser {
 			Set<String> symptoms = new HashSet<String>(ctx.read("$.condition.symptoms"));
 			conditions_symptoms.put(condition, symptoms);
 			insertIntoConditionsSymptoms(symptoms, condition);
-//			all_symptoms.addAll(symptoms);
-			
 			List<String> drugs_names = ctx.read("$.drugs[*].name");		
 			for(Integer i=0;i<drugs_names.size();i++){
 				Set<String>drug_companies  =Sets.newHashSet();
@@ -91,6 +95,8 @@ public class IodineJsonParser {
 					insertIntoSymptomsDrugComps(symptoms,drug_companies);
 				}
 			}
+			logger.info(all_drug_companies.size());
+
 		}catch(Exception e){
 		}
 	}
@@ -146,20 +152,20 @@ public class IodineJsonParser {
 		return symptoms_drug_companies.keySet();
 	}
 
-	public Set<String> getAll_drug_companies() {
+	public static Set<String> getAll_drug_companies() {
 		return all_drug_companies;
 	}
 
-	public void setAll_drug_companies(Set<String> all_drug_companies) {
-		this.all_drug_companies = all_drug_companies;
+	public static void setAll_drug_companies(Set<String> allDrugComps) {
+		all_drug_companies = allDrugComps;
+	}
+	
+	public static List<String> getAll_drug_companies_list() {
+		return all_drug_companies_list;
 	}
 
-//	public Set<String> getAll_symptoms() {
-//		return all_symptoms;
-//	}
+	public static void setAll_drug_companies_list(List<String> allDrugComps) {
+		all_drug_companies_list = allDrugComps;
+	}
 
-//	public void setAll_symptoms(Set<String> all_symptoms) {
-//		this.all_symptoms = all_symptoms;
-//	}
-	
 }

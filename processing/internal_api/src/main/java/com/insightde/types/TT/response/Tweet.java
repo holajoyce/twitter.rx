@@ -46,12 +46,6 @@ public class Tweet implements GenericPost{
 	public String id_str;
 	private String body;
 	private Date created_at;
-	private int favorite_count;
-	private int retweet_count;
-	private boolean favorited;
-	private boolean retweeted;
-//	private TwitterEntity entities;
-//	private TwitterUser user;
 	private Language lang;
 	private Place place;
 	private List<String> pharmatags = Lists.newArrayList();
@@ -59,22 +53,8 @@ public class Tweet implements GenericPost{
 	private Set<String> conditiontags = Sets.newHashSet();
 	private Set<String> drugtags = Sets.newHashSet();
 	private long created_utc = 0L;
-//	private long timestamp_ms = 0L;
-	
 	private String user_screen_name;
 	
-	
-//	public Tweet(String id, String text){
-//		this.id_str = id;
-//		this.text = text;
-//	}
-	
-	// --- getter setters
-//	public String getRelevantText(){
-//		return text;
-//	}
-
-
 	public Date getCreated_at() {
 		return created_at;
 	}
@@ -87,9 +67,6 @@ public class Tweet implements GenericPost{
 		}
 	}
 
-//	public String getText() {
-//		return text;
-//	}
 	public String getBody(){
 		return body;
 	}
