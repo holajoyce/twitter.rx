@@ -1,5 +1,5 @@
 {% extends "base.html" %} <!--this means that you are extending the base tempate -->
-{% block monitors %} <!-- this is the name of the block below -->
+{% block companies %} <!-- this is the name of the block below -->
 
 <link href="https://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css" rel="stylesheet">
 
@@ -27,43 +27,46 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript">
+
+	var alldata={}
+
 	var monitorsTable = $('#monitors').DataTable({
 		'fnCreatedRow' : function (nRow, aData, iDataIndex) {
 			var mon_id = 'MONITOR_' + aData[0];
-			//console.log("Row:" + mon_id);
+			console.log("Row:" + mon_id);
 			$(nRow).attr('id', mon_id);
 		}
 	});
 	
 	var monUpdateTimer = '';
-	
-	function start_update() {
-		monUpdateTimer = setInterval("update_monitors()",1000);
-	}
 
-	function update_monitors() { 
-		$.ajax({
-			type: "GET",
-			url: "/api/stream/monitors/",
-			data: "=success",
-			success: function(msg) {
-				var monLen = msg.monitors.length;
-				//console.log(monLen)
-				for (var i = 0; i < monLen; i++) {
-					var mon = msg.monitors[i];
-					var mon_id = '#MONITOR_' + mon.monitor;
+	var reloadTbl = function (msg){
+				for (var i = 0; i < msg.stream.r.length; i++) {
+					var mon = msg.stream.r[i];
+					var mon_id = '#MONITOR_' + mon.id;
 					var mon_row = monitorsTable.row(mon_id)
-					
 					if (mon_row.any()) {
-						//console.log("Found Row:" + mon_id);
-						mon_row.data([mon.monitor, mon.tdeltaagg])
+						mon_row.data([mon.author, mon.body,mon.price, mon.created_utc])
 					} else {
-						//console.log("Adding Row:" + mon_id);
-						monitorsTable.row.add([mon.monitor, mon.tdeltaagg])
+						monitorsTable.row.add([mon.author, mon.body,mon.price, mon.created_utc])
 					}
 				}
 				monitorsTable.draw( false );
 			}
+	
+	function start_update() {
+		monUpdateTimer = setInterval("update_monitors()",5000);
+	}
+
+	function update_monitors() { 
+		company = "nostrum_laboratories_inc";
+		nowtime = ((new Date).getTime()-(1000*60)).toString()
+
+		$.ajax({
+			type: "GET",
+			url: "/api/stream/bidswon/"+company+"/"+nowtime,
+			data: "=success",
+			success: reloadTbl
 		});
 	}
 	

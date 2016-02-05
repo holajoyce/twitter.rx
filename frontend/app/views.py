@@ -12,8 +12,6 @@ from flask import render_template
 cluster = Cluster(["52.88.7.3","52.89.90.56","52.88.121.199","52.89.89.147"]) 
 session = cluster.connect('text_bids') 
 
-g_monitors = {}
-   
 @app.route('/api/email/<email>/<date>')
 def get_email(email, date):
 	stmt = "SELECT * FROM email WHERE id=%s and date=%s"
@@ -30,20 +28,22 @@ def get_email(email, date):
 def index():
     return render_template("index.html")
 
-@app.route('/monitors')
-def monitors():
-    return render_template("monitors.html")
-	
-@app.route('/api/stream/bidswon/<company>/<begin>/<end>', defaults={'begin': None, 'end':None})
-def report_monitors(company, begin, end):
-	print("begin: "+str(begin))
-	stmt = "SELECT * from bidswon WHERE created_utc>"+str(begin)+" AND created_utc<"+str(end)+" AND pharmatag = '"+company+"';"
+
+# show impression stream
+@app.route('/companies')
+def companies():
+    return render_template("companies.html")
+
+
+@app.route('/api/stream/bidswon/<company>/<end>')
+def report_monitors(company, end):
+	stmt = "SELECT id,created_utc, author, price, body from bidswon WHERE created_utc <"+str(end)+" AND pharmatag = '"+company+"' limit 10;"
 	print(stmt)
-	# return stmt
 	response = session.execute(stmt)
 	# print response
 	response_list = []
 	for val in response:
 		response_list.append(val)
-	jsonresponse = [{"author": x.author, "price": x.price, "body": x.body} for x in response_list]
-	return jsonify(stream=jsonresponse)
+	jsonresponse = [{"id":x.id,"created_utc":x.created_utc,"author": x.author, "price": x.price, "body": x.body} for x in response_list]
+	print(jsonresponse)
+	return jsonify(stream={"r":jsonresponse})
