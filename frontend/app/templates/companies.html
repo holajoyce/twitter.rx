@@ -5,8 +5,8 @@
 
 <div class="row tab" style="height:100vh;">
 	<br> <br> 	<br> <br> 	<br> <br>
-	<input type="button" onclick="start_update()" value="Start"/>
-	<input type="button" onclick="stop_update()" value="Stop"/>	
+	<!-- <input type="button" onclick="start_update()" value="Start"/>
+	<input type="button" onclick="stop_update()" value="Stop"/>	 -->
 	<table id="monitors" class="display" cellspacing="0" width="100%">
         <thead>
             <tr>
@@ -14,7 +14,7 @@
                 <th>author</th>
                 <th>body</th>
                 <th>price</th>
-                <th>created_utc</th>
+               <!--  <th>created_utc</th> -->
             </tr>
         </thead>
 		<tfoot>
@@ -23,7 +23,7 @@
                 <th>author</th>
                 <th>body</th>
                 <th>price</th>
-                <th>created_utc</th>
+                <!-- <th>created_utc</th> -->
             </tr>
         </tfoot>		
     </table>
@@ -36,6 +36,16 @@
 
 
 	var monitorsTable = $('#monitors').DataTable({
+		"order": [[ 0, "desc" ]],
+		"bPaginate": false,
+        "bFilter": false,
+        "bInfo": false,
+        "pageLength": 10,
+        "displayStart": 50,
+         "bJQueryUI": true, //Enable smooth theme
+        "sPaginationType": "full_numbers", //Enable smooth theme
+        "sDom": 't',
+
 		'fnCreatedRow' : function (nRow, aData, iDataIndex) {
 			var mon_id = 'MONITOR_' + aData[0];
 			console.log("Row:" + mon_id);
@@ -58,11 +68,18 @@
 				monitorsTable.row.add([mon.id,mon.author, mon.body,mon.price, mon.created_utc])
 			}
 		}
+		var count =0;
+		monitorsTable.rows(function(idx, data, node){
+			if( count>100){
+				monitorsTable.fnDeleteRow(monitorsTable.fnGetPosition(monitorsTable.row(idx)));
+			}
+			count+=1;
+		})
 		monitorsTable.draw( false );
 	}
 	
 	function start_update() {
-		monUpdateTimer = setInterval("update_monitors()",5000);
+		monUpdateTimer = setInterval("update_monitors()",1000);
 	}
 
 	function update_monitors() { 
