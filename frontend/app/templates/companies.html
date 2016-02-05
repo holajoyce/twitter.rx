@@ -10,14 +10,20 @@
 	<table id="monitors" class="display" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th>Monitor</th>
-                <th>Bandwidth</th>
+                <th>id</th>
+                <th>author</th>
+                <th>body</th>
+                <th>price</th>
+                <th>created_utc</th>
             </tr>
         </thead>
 		<tfoot>
             <tr>
-                <th>Monitor</th>
-                <th>Bandwidth</th>
+                <th>id</th>
+                <th>author</th>
+                <th>body</th>
+                <th>price</th>
+                <th>created_utc</th>
             </tr>
         </tfoot>		
     </table>
@@ -28,7 +34,6 @@
 <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript">
 
-	var alldata={}
 
 	var monitorsTable = $('#monitors').DataTable({
 		'fnCreatedRow' : function (nRow, aData, iDataIndex) {
@@ -41,18 +46,20 @@
 	var monUpdateTimer = '';
 
 	var reloadTbl = function (msg){
-				for (var i = 0; i < msg.stream.r.length; i++) {
-					var mon = msg.stream.r[i];
-					var mon_id = '#MONITOR_' + mon.id;
-					var mon_row = monitorsTable.row(mon_id)
-					if (mon_row.any()) {
-						mon_row.data([mon.author, mon.body,mon.price, mon.created_utc])
-					} else {
-						monitorsTable.row.add([mon.author, mon.body,mon.price, mon.created_utc])
-					}
-				}
-				monitorsTable.draw( false );
+		var allids={}
+		for (var i = 0; i < msg.stream.r.length; i++) {
+			var mon = msg.stream.r[i];
+			var mon_id = '#MONITOR_' + mon.id;
+			var mon_row = monitorsTable.row(mon_id)
+			if (mon_row.any()) {
+				mon_row.data([mon.id,mon.author, mon.body,mon.price, mon.created_utc])
+			} else if(!(mon_id in allids) ){
+				allids[mon_id] = '';
+				monitorsTable.row.add([mon.id,mon.author, mon.body,mon.price, mon.created_utc])
 			}
+		}
+		monitorsTable.draw( false );
+	}
 	
 	function start_update() {
 		monUpdateTimer = setInterval("update_monitors()",5000);
