@@ -1,30 +1,29 @@
-[slides 50.112.137.240:1948/slide_deck.md](http://50.112.137.240:1948/slide_deck.md)
 
-# -- cluster 1 (yellow)
-
-joyce-kafak3 contains 
-- zookeeper, (running)
-- kafaka,  (running)
-- elasticsearch (stopped)
-
-ec2-52-35-9-210.us-west-2.compute.amazonaws.com:9200/_cat/nodes?v
-
-#-- cluster 2 (red)
-
-joyce-cassandra  is 3 nodes has 
-
-- 3 nodes of only cassandra (running)
-- the m4.large has collectors running also in fluentd (running)
-- m4.large will also have flask (not installed yet)
+# Social Media Health Ads
 
 
-#--- cluster 3 (blue)
+#### Contextual advertising by tagging of social media posts with symptoms, and joining with pharmaceutical bids
 
-joyce-proc5 has
+The _Social Media Health Ads_ project searches on the stream in realtime for users' symptoms, and tags posts with eligible drug companies that can provide treatments for the user.  
 
-(all running)
-spark 
-spark master
-hadoop 
-hadoop namenode
-redis
+Drug companies are able to bid on each text for which they are eligible.
+
+### Technologies:
+- fluentd
+- kafka
+- luwak
+- spark streaming
+- cassandra
+- elastic
+- kibana
+- flask
+
+### Example
+
+1. Dashboard
+<img src='http://gdurl.com/CW4d' />
+
+2. Impression Stream
+<iframe width="420" height="315"
+src="http://www.youtube.com/embed/-1pBhdcxGMA?autoplay=0">
+</iframe>
