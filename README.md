@@ -25,3 +25,7 @@ Drug companies are able to bid on each text for which they are eligible.
 
 2. Impression Stream
 <iframe width="560" height="315" src="https://www.youtube.com/embed/-1pBhdcxGMA" frameborder="0" allowfullscreen></iframe>
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=-1pBhdcxGMA
+" target="_blank"><img src="http://img.youtube.com/vi/-1pBhdcxGMA/0.jpg" 
+alt="Streaming Impression Stream" width="240" height="180" border="10" /></a>
