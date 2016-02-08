@@ -24,6 +24,4 @@ Drug companies are able to bid on each text for which they are eligible.
 <img src='http://gdurl.com/CW4d' />
 
 2. Impression Stream
-<iframe width="420" height="315"
-src="http://www.youtube.com/embed/-1pBhdcxGMA?autoplay=0">
-</iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/-1pBhdcxGMA" frameborder="0" allowfullscreen></iframe>
