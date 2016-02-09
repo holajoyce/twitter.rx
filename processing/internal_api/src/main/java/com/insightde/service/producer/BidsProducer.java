@@ -58,8 +58,8 @@ public class BidsProducer {
 		}
 	}
 
-	// run every 3 days
-	@Scheduled(fixedRate = 259200)
+	//deprecated
+//	@Scheduled(fixedRate = 259200)
 	public void updateDrugCompaniesOrdering() {
 		List<String> difn = new ArrayList<String>(IodineJsonParser.getAll_drug_companies_list());
 		String response = Rest.post("http://" + ES_HOST + ":9200/_search", readElasticSearchRequestFile());
