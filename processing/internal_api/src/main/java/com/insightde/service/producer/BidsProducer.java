@@ -44,11 +44,12 @@ public class BidsProducer {
 
 	// get sorted list of all drug comps
 	public BidsProducer() {
+
 	}
 
 	// simulate bidding by pharma comps
-	// run this every 1 s
-	@Scheduled(fixedRate = 1000)
+	// run this every 0.5 s
+	@Scheduled(fixedRate = 500)
 	public void produceBidsSimulation() {
 		for (String drug_comp : IodineJsonParser.getAll_drug_companies_list()) {
 			Map<String, Object> bidItem = new HashMap<String, Object>();
@@ -59,7 +60,7 @@ public class BidsProducer {
 	}
 
 	//deprecated
-//	@Scheduled(fixedRate = 259200)
+	@Scheduled(fixedRate = 259200)
 	public void updateDrugCompaniesOrdering() {
 		List<String> difn = new ArrayList<String>(IodineJsonParser.getAll_drug_companies_list());
 		String response = Rest.post("http://" + ES_HOST + ":9200/_search", readElasticSearchRequestFile());
