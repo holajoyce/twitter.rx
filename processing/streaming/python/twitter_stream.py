@@ -47,13 +47,13 @@ from fluent import event
 
 # if need to use connectionpool http://www.cnblogs.com/englefly/p/4579863.html
 
-BATCH_INTERVAL = 1;
+BATCH_INTERVAL = 1.2;
 def getSqlContextInstance(sparkContext):
   if ('sqlContextSingletonInstance' not in globals()):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
   return globals()['sqlContextSingletonInstance']
 
-conf = SparkConf().setAppName("PySpark Cassandra Text Bids Join").set("spark.es.host", "ec2-52-88-7-3.us-west-2.compute.amazonaws.com").set("spark.streaming.receiver.maxRate",2000).set("spark.streaming.kafka.maxRatePerPartition",500).set("spark.streaming.backpressure.enabled",True).set("spark.cassandra.connection.host","172.31.1.138")
+conf = SparkConf().setAppName("PySpark Cassandra Text Bids Join").set("spark.es.host", "ec2-52-88-7-3.us-west-2.compute.amazonaws.com").set("spark.streaming.receiver.maxRate",2000).set("spark.streaming.kafka.maxRatePerPartition",1000).set("spark.streaming.backpressure.enabled",True).set("spark.cassandra.connection.host","172.31.1.138")
 
 kafkaBrokers = {"metadata.broker.list": "52.33.29.117:9092,52.33.248.41:9092,52.35.99.109:9092,52.89.231.174:9092"}
 
@@ -147,16 +147,19 @@ def tfunc(t,rdd,rddb):
     getSqlContextInstance(rdd.context).cacheTable('bids')
     bids = bids.select(bids.price,bids.pharmatag)
     
-    # #---- texts ids joined with pharma bids
-    idbids = texts.join(bids,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, texts.conditiontags, texts.symptomtags, bids.pharmatag,bids.price)
+    # #---- texts ids joined with pharma bids, java webservice already sorted by price
+    idbids = bids.join(texts,texts.pharmatag==bids.pharmatag,'inner').select(texts.id,texts.author, texts.created_utc, texts.body, texts.conditiontags, texts.symptomtags, bids.pharmatag,bids.price).limit(1)
     idbids.registerTempTable("idbids")
+    idbids.show()
+    return idbids.rdd
+
 
     # #-----texts id & bids, find min
-    idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, conditiontags, symptomtags, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, conditiontags, symptomtags, pharmatag ")
-    idsbidsmin.registerTempTable("idsbidsmin") # dataframe
-
-    idsbidsmin.show()
-    return idsbidsmin.rdd
+    # DEPRECATED, will just return the top matched, since it's already sorted by price  by java service
+    # idsbidsmin = getSqlContextInstance(rddb.context).sql("SELECT id, author, created_utc, body, pharmatag, conditiontags, symptomtags, max(price) as price FROM idbids GROUP BY id,author, created_utc, body, conditiontags, symptomtags, pharmatag ")
+    # idsbidsmin.registerTempTable("idsbidsmin") # dataframe
+    # idsbidsmin.show()
+    # return idsbidsmin.rdd
 
   except 'Exception':
     pass
