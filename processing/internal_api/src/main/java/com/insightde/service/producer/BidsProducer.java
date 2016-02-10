@@ -56,7 +56,7 @@ public class BidsProducer {
 
 	// simulate bidding by pharma comps
 	// run this every 0.5 s
-//	@Scheduled(fixedRate = 500)
+	@Scheduled(fixedRate = 1000)
 	public void produceBidsSimulation() {
 		TreeMap<String, Double> bidItems = new ValueComparableMap<String, Double>(Ordering.natural());
 		
