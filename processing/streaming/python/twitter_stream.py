@@ -53,7 +53,7 @@ def getSqlContextInstance(sparkContext):
       globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
   return globals()['sqlContextSingletonInstance']
 
-conf = SparkConf().setAppName("PySpark Cassandra Text Bids Join").set("spark.es.host", "ec2-52-88-7-3.us-west-2.compute.amazonaws.com").set("spark.streaming.receiver.maxRate",7000).set("spark.streaming.kafka.maxRatePerPartition",2000).set("spark.streaming.backpressure.enabled",True).set("spark.cassandra.connection.host","172.31.1.138")
+conf = SparkConf().setAppName("PySpark Cassandra Text Bids Join").set("spark.es.host", "ec2-52-88-7-3.us-west-2.compute.amazonaws.com").set("spark.streaming.receiver.maxRate",2000).set("spark.streaming.kafka.maxRatePerPartition",500).set("spark.streaming.backpressure.enabled",True).set("spark.cassandra.connection.host","172.31.1.138")
 
 kafkaBrokers = {"metadata.broker.list": "52.33.29.117:9092,52.33.248.41:9092,52.35.99.109:9092,52.89.231.174:9092"}
 
