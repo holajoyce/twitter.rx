@@ -44,34 +44,38 @@ public class BidsProducer {
 
 	// get sorted list of all drug comps
 	public BidsProducer() {
-
+		logger.info("starting simulate bidstram produce Constructor");
+		produceBidsSimulation();
 	}
 
 	// simulate bidding by pharma comps
 	// run this every 0.5 s
+//	@Scheduled(fixedRate = 100)
 	@Scheduled(fixedRate = 500)
 	public void produceBidsSimulation() {
+		logger.info("starting simulate bidstram produce");
 		for (String drug_comp : IodineJsonParser.getAll_drug_companies_list()) {
 			Map<String, Object> bidItem = new HashMap<String, Object>();
 			bidItem.put("pharmatags", drug_comp);
 			bidItem.put("price", Nums.round(Nums.getRandomNumberInRange(1, 15) / 100.00, 2));
 			LOG.log("prices", bidItem);
+			logger.info(bidItem.toString());
 		}
 	}
 
 	//deprecated
-	@Scheduled(fixedRate = 259200)
-	public void updateDrugCompaniesOrdering() {
-		List<String> difn = new ArrayList<String>(IodineJsonParser.getAll_drug_companies_list());
-		String response = Rest.post("http://" + ES_HOST + ":9200/_search", readElasticSearchRequestFile());
-		ReadContext ctx = JsonPath.parse(response);
-		List<String> top_drug_companies_lst = new ArrayList<String>(ctx.read("$.aggregations.2.buckets[*].key"));
-		difn.removeAll(top_drug_companies_lst);
-		List<String> newOrderings = new ArrayList<String>(top_drug_companies_lst);
-		newOrderings.addAll(difn);
-		IodineJsonParser.setAll_drug_companies_list(newOrderings);
-		logger.info(newOrderings.size());
-	}
+//	@Scheduled(fixedRate = 259200)
+//	public void updateDrugCompaniesOrdering() {
+//		List<String> difn = new ArrayList<String>(IodineJsonParser.getAll_drug_companies_list());
+//		String response = Rest.post("http://" + ES_HOST + ":9200/_search", readElasticSearchRequestFile());
+//		ReadContext ctx = JsonPath.parse(response);
+//		List<String> top_drug_companies_lst = new ArrayList<String>(ctx.read("$.aggregations.2.buckets[*].key"));
+//		difn.removeAll(top_drug_companies_lst);
+//		List<String> newOrderings = new ArrayList<String>(top_drug_companies_lst);
+//		newOrderings.addAll(difn);
+//		IodineJsonParser.setAll_drug_companies_list(newOrderings);
+//		logger.info(newOrderings.size());
+//	}
 
 	private String readElasticSearchRequestFile() {
 		String content = "";

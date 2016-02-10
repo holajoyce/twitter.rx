@@ -9,7 +9,7 @@ public class BidsProducerTest {
 	@Test
 	public void testUpdateDrugCompaniesOrdering() {
 		BidsProducer bp = new BidsProducer();
-		bp.updateDrugCompaniesOrdering();
+//		bp.updateDrugCompaniesOrdering();
 	}
 
 }
