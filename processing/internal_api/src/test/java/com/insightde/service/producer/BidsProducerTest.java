@@ -7,9 +7,9 @@ import org.junit.Test;
 public class BidsProducerTest {
 
 	@Test
-	public void testUpdateDrugCompaniesOrdering() {
+	public void testSimulation() {
 		BidsProducer bp = new BidsProducer();
-		bp.updateDrugCompaniesOrdering();
+		bp.produceBidsSimulation();
 	}
 
 }
