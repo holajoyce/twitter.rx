@@ -6,7 +6,7 @@
 
 The _Social Media Health Ads_ project searches on the stream in realtime for users' symptoms, and tags posts with eligible drug companies that can provide treatments for the user.  
 
-Drug companies are able to bid on each text for which they are eligible.
+Drug companies are able to bid on each text for which they are eligible (where users' symptoms are matched to conditions, then matched to drugs, then matched to pharmaceutical companies, and joined to highest bidding pharmaceutical company.
 
 ### [Presentation](http://healthads.instapage.com/)
 
