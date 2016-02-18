@@ -8,7 +8,7 @@ The _Social Media Health Ads_ project searches on the stream in realtime for use
 
 Drug companies are able to bid on each text for which they are eligible (where users' symptoms are matched to conditions, then matched to drugs, then matched to pharmaceutical companies, and joined to highest bidding pharmaceutical company.
 
-### [Website](http://healthads.instapage.com/), and [SlideDeck](52.33.160.140:8000/static/SocialMedia.Health.Ads.pdf)
+### [Website](http://healthads.instapage.com/), and [SlideDeck](http://52.33.160.140:8000/static/SocialMedia.Health.Ads.pdf)
 
 
 ### Technologies:
