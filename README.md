@@ -8,6 +8,9 @@ The _Social Media Health Ads_ project searches on the stream in realtime for use
 
 Drug companies are able to bid on each text for which they are eligible.
 
+### [Presentation](http://healthads.instapage.com/)
+
+
 ### Technologies:
 - fluentd
 - kafka
