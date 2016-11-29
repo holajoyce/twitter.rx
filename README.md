@@ -8,7 +8,7 @@ The _Social Media Health Ads_ project searches on the stream in realtime for use
 
 Drug companies are able to bid on each text for which they are eligible (where users' symptoms are matched to conditions, then matched to drugs, then matched to pharmaceutical companies, and joined to highest bidding pharmaceutical company.
 
-### [Website](http://healthads.instapage.com/), and [SlideDeck](http://52.33.160.140:8000/static/SocialMedia.Health.Ads.pdf)
+### [SlideDeck](https://github.com/holajoyce/twitter.rx/blob/master/presentation/SocialMedia.Health.Ads.pdf)
 
 
 ### Technologies:
@@ -26,7 +26,7 @@ Drug companies are able to bid on each text for which they are eligible (where u
 1. Dashboard
 <img src='http://gdurl.com/CW4d' />
 
-2. Impression Stream
+2. Impression Stream (click for YouTube Video)
 <iframe width="560" height="315" src="https://www.youtube.com/embed/-1pBhdcxGMA" frameborder="0" allowfullscreen></iframe>
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=-1pBhdcxGMA
